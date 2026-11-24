@@ -17,8 +17,20 @@ Om op te starten kan je volgende commando's gebruiken.
 
 ```bash
 npm install
+npm run db:setup   # maakt local.db aan en vult demo-data in
 npm run dev
 ```
+
+> Gebruik Node 22 of 24 (LTS). Op oneven versies (bv. 23) heeft `better-sqlite3` geen prebuilt binary.
+
+### Demo accounts
+Alle accounts hebben wachtwoord `achrona` (zie `src/db/seed.ts`).
+
+| Codename | Role        |
+|----------|-------------|
+| Nova     | `commander` |
+| Ember    | `defender`  |
+| Rook     | `defender`  |
 ## Beoordeling
 > Hoe wij beoordelen wordt voor de start van de hackathon met alle studenten gedeeld, zodat dit meteen duidelijk is voor iedereen.
 

@@ -9,8 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as AnomaliesRouteImport } from './routes/anomalies'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppGuardiansRouteImport } from './routes/_app/guardians'
 import { Route as ApiAnomaliesRouteImport } from './routes/api/anomalies'
 import { Route as ApiForecastsRouteImport } from './routes/api/forecasts'
 import { Route as ApiLatestRouteImport } from './routes/api/latest'
@@ -20,18 +23,33 @@ import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreamRouteImport } from './routes/api/stream'
 import { Route as ApiWarningsRouteImport } from './routes/api/warnings'
 import { Route as NodesNodeIdRouteImport } from './routes/nodes.$nodeId'
+import { Route as AppGlitchesGlitchIdRouteImport } from './routes/_app/glitches.$glitchId'
 import { Route as ApiSimActionRouteImport } from './routes/api/sim.$action'
 import { Route as ApiAnomaliesIdAckRouteImport } from './routes/api/anomalies.$id.ack'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnomaliesRoute = AnomaliesRouteImport.update({
   id: '/anomalies',
   path: '/anomalies',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGuardiansRoute = AppGuardiansRouteImport.update({
+  id: '/guardians',
+  path: '/guardians',
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiAnomaliesRoute = ApiAnomaliesRouteImport.update({
   id: '/api/anomalies',
@@ -78,6 +96,11 @@ const NodesNodeIdRoute = NodesNodeIdRouteImport.update({
   path: '/nodes/$nodeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppGlitchesGlitchIdRoute = AppGlitchesGlitchIdRouteImport.update({
+  id: '/glitches/$glitchId',
+  path: '/glitches/$glitchId',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiSimActionRoute = ApiSimActionRouteImport.update({
   id: '/api/sim/$action',
   path: '/api/sim/$action',
@@ -90,8 +113,10 @@ const ApiAnomaliesIdAckRoute = ApiAnomaliesIdAckRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
   '/anomalies': typeof AnomaliesRoute
+  '/login': typeof LoginRoute
+  '/guardians': typeof AppGuardiansRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -101,12 +126,14 @@ export interface FileRoutesByFullPath {
   '/api/stream': typeof ApiStreamRoute
   '/api/warnings': typeof ApiWarningsRoute
   '/nodes/$nodeId': typeof NodesNodeIdRoute
+  '/glitches/$glitchId': typeof AppGlitchesGlitchIdRoute
   '/api/sim/$action': typeof ApiSimActionRoute
   '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/anomalies': typeof AnomaliesRoute
+  '/login': typeof LoginRoute
+  '/guardians': typeof AppGuardiansRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -116,13 +143,17 @@ export interface FileRoutesByTo {
   '/api/stream': typeof ApiStreamRoute
   '/api/warnings': typeof ApiWarningsRoute
   '/nodes/$nodeId': typeof NodesNodeIdRoute
+  '/': typeof AppIndexRoute
+  '/glitches/$glitchId': typeof AppGlitchesGlitchIdRoute
   '/api/sim/$action': typeof ApiSimActionRoute
   '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
   '/anomalies': typeof AnomaliesRoute
+  '/login': typeof LoginRoute
+  '/_app/guardians': typeof AppGuardiansRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -132,6 +163,8 @@ export interface FileRoutesById {
   '/api/stream': typeof ApiStreamRoute
   '/api/warnings': typeof ApiWarningsRoute
   '/nodes/$nodeId': typeof NodesNodeIdRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/glitches/$glitchId': typeof AppGlitchesGlitchIdRoute
   '/api/sim/$action': typeof ApiSimActionRoute
   '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
@@ -140,6 +173,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/anomalies'
+    | '/login'
+    | '/guardians'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -149,12 +184,14 @@ export interface FileRouteTypes {
     | '/api/stream'
     | '/api/warnings'
     | '/nodes/$nodeId'
+    | '/glitches/$glitchId'
     | '/api/sim/$action'
     | '/api/anomalies/$id/ack'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/anomalies'
+    | '/login'
+    | '/guardians'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -164,12 +201,16 @@ export interface FileRouteTypes {
     | '/api/stream'
     | '/api/warnings'
     | '/nodes/$nodeId'
+    | '/'
+    | '/glitches/$glitchId'
     | '/api/sim/$action'
     | '/api/anomalies/$id/ack'
   id:
     | '__root__'
-    | '/'
+    | '/_app'
     | '/anomalies'
+    | '/login'
+    | '/_app/guardians'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -179,13 +220,16 @@ export interface FileRouteTypes {
     | '/api/stream'
     | '/api/warnings'
     | '/nodes/$nodeId'
+    | '/_app/'
+    | '/_app/glitches/$glitchId'
     | '/api/sim/$action'
     | '/api/anomalies/$id/ack'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   AnomaliesRoute: typeof AnomaliesRoute
+  LoginRoute: typeof LoginRoute
   ApiAnomaliesRoute: typeof ApiAnomaliesRouteWithChildren
   ApiForecastsRoute: typeof ApiForecastsRoute
   ApiLatestRoute: typeof ApiLatestRoute
@@ -200,11 +244,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anomalies': {
@@ -213,6 +257,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/anomalies'
       preLoaderRoute: typeof AnomaliesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/guardians': {
+      id: '/_app/guardians'
+      path: '/guardians'
+      fullPath: '/guardians'
+      preLoaderRoute: typeof AppGuardiansRouteImport
+      parentRoute: typeof AppRoute
     }
     '/api/anomalies': {
       id: '/api/anomalies'
@@ -277,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NodesNodeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/glitches/$glitchId': {
+      id: '/_app/glitches/$glitchId'
+      path: '/glitches/$glitchId'
+      fullPath: '/glitches/$glitchId'
+      preLoaderRoute: typeof AppGlitchesGlitchIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/sim/$action': {
       id: '/api/sim/$action'
       path: '/api/sim/$action'
@@ -294,6 +366,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppRouteChildren {
+  AppGuardiansRoute: typeof AppGuardiansRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppGlitchesGlitchIdRoute: typeof AppGlitchesGlitchIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppGuardiansRoute: AppGuardiansRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppGlitchesGlitchIdRoute: AppGlitchesGlitchIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 interface ApiAnomaliesRouteChildren {
   ApiAnomaliesIdAckRoute: typeof ApiAnomaliesIdAckRoute
 }
@@ -307,8 +393,9 @@ const ApiAnomaliesRouteWithChildren = ApiAnomaliesRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
   AnomaliesRoute: AnomaliesRoute,
+  LoginRoute: LoginRoute,
   ApiAnomaliesRoute: ApiAnomaliesRouteWithChildren,
   ApiForecastsRoute: ApiForecastsRoute,
   ApiLatestRoute: ApiLatestRoute,
