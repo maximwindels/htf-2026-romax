@@ -7,6 +7,7 @@ import { toggleSound, useSoundOn } from './alerts'
 import { fmtTime } from './format'
 import { useNow } from './hooks'
 import type { LiveStatus } from './live'
+import { toggleOracle } from './Oracle'
 
 /** Top bar above every page: brand, magic meter, theme/sound toggles, live-connection status and the clock. */
 export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync: DesyncState }) {
@@ -47,6 +48,9 @@ export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync:
           )}
         </div>
         {/* Downloads the High Council PDF (Content-Disposition: attachment, so the page stays open). */}
+        <button type="button" className="btn-small oracle-btn" onClick={toggleOracle} title="Ask the Oracle about incidents and alerts (O)">
+          Oracle
+        </button>
         <a className="btn-report" href="/api/report" title="Export the most important data as a PDF for the High Council">
           Report PDF
         </a>

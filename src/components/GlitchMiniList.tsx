@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { UserRound } from "lucide-react";
+import { GlitchTypeBadge } from "#/components/GlitchTypeBadge.tsx";
 import { STATUS_LABELS, type GlitchListItem } from "#/lib/glitch.ts";
 
 /**
@@ -35,7 +36,10 @@ export function GlitchMiniList({
               title={STATUS_LABELS[g.status]}
             />
             <span className="mono glitch-mini-id">{g.glitchId}</span>
-            <span className="glitch-mini-desc">{g.description}</span>
+            <span className="glitch-mini-desc">
+              <GlitchTypeBadge type={g.glitchType} compact />
+              {g.description}
+            </span>
             <span
               className={`glitch-mini-who ${g.assigneeId === currentGuardianId ? "is-me" : ""}`}
             >

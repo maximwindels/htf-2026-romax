@@ -5,11 +5,13 @@
  * - All critical anomalies of one tick become ONE glitch (a Desync wave = one glitch, not five).
  * - Per node + metric at most one auto-glitch per COOLDOWN_MS, so a long incident doesn't flood the list.
  */
+import { eq } from 'drizzle-orm'
 import { db } from '#/db/index.ts'
 import { glitches, nodes } from '#/db/schema.ts'
 import type { Glitch } from '#/lib/glitch.ts'
 import { nextId } from '#/lib/ids.server.ts'
 import { METRIC_INFO, type Anomaly } from '#/lib/grid.ts'
+import { enrichNewGlitch, typeByRules } from '#/server/ai/triage.ts'
 import { bus } from './bus'
 import { seriesKey } from './helpers'
 
@@ -24,11 +26,16 @@ export function openGlitchFor(critical: Anomaly[], ts: Date) {
   const description = describe(fresh)
   // Same id scheme as echoes reported by guardians (GL-0143), in one transaction.
   const glitch = db.transaction((tx): Glitch => {
-    const row: Glitch = { glitchId: nextId(tx, 'GL'), status: 'LEAKED', description, timestamp: ts.toISOString() }
+    const row: Glitch = { glitchId: nextId(tx, 'GL'), status: 'LEAKED', description, timestamp: ts.toISOString(), glitchType: typeByRules(description) }
     tx.insert(glitches).values(row).run()
     return row
   })
   bus.emit('glitch', glitch)
+  // AI picks the type and a defender in the background (rules when there is no AI key).
+  void enrichNewGlitch(glitch.glitchId).then(() => {
+    const updated = db.select().from(glitches).where(eq(glitches.glitchId, glitch.glitchId)).get()
+    if (updated) bus.emit('glitch', updated)
+  })
 }
 
 /** "Desync wave: Sync drift critical on Ember Forge, Tide Gate" or "Core temp critical on Ember Forge (91.2)". */

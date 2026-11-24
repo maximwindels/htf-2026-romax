@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { GlitchesTable } from "#/components/GlitchesTable.tsx";
 import { ReportEchoDialog } from "#/components/ReportEchoDialog.tsx";
@@ -38,8 +38,14 @@ function GlitchesPage() {
   const { guardian } = Route.useRouteContext();
   const { report } = Route.useSearch();
   const navigate = useNavigate({ from: "/glitches/" });
-  const setReporting = (open: boolean) =>
+  const router = useRouter();
+  // Closing the dialog only resets the URL while we are still on the list: after sending an echo,
+  // the dialog navigates to the glitch, and closing must not pull us back here.
+  const setReporting = (open: boolean) => {
+    const path = router.state.location.pathname;
+    if (!open && path !== "/glitches" && path !== "/glitches/") return;
     navigate({ search: open ? { report: true } : {}, replace: !open });
+  };
 
   const [status, setStatus] = useState<GlitchStatus | "all">("all");
   const [mineOnly, setMineOnly] = useState(false);

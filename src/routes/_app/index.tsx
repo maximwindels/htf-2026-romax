@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { GlitchMiniList } from "#/components/GlitchMiniList.tsx";
 import { ReportEchoDialog } from "#/components/ReportEchoDialog.tsx";
 import {
@@ -32,8 +32,13 @@ function OverviewPage() {
   // The dialog state lives in the URL, so the N shortcut can open it from any page.
   const { report } = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
-  const setReporting = (open: boolean) =>
+  const router = useRouter();
+  // Closing the dialog only resets the URL while we are still here: after sending an echo,
+  // the dialog navigates to the glitch, and closing must not pull us back to the dashboard.
+  const setReporting = (open: boolean) => {
+    if (!open && router.state.location.pathname !== "/") return;
     navigate({ search: open ? { report: true } : {}, replace: !open });
+  };
   const open = glitches.filter((g) => g.status !== "FIXED");
 
   return (

@@ -9,6 +9,7 @@ import { useDesync } from '#/dashboard/desync'
 import { CurseBanner } from '#/dashboard/CurseBanner'
 import { TopBar } from '#/dashboard/TopBar'
 import { TabBar } from '#/dashboard/TabBar'
+import { OraclePanel } from '#/dashboard/Oracle'
 import { useLiveStream } from '#/dashboard/live'
 import { getCurrentGuardian } from '#/lib/auth.functions.ts'
 
@@ -56,6 +57,7 @@ function LiveArea() {
         <Outlet />
       </main>
       <Toasts />
+      <OraclePanel />
     </div>
   )
 }
