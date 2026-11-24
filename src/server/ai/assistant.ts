@@ -12,7 +12,7 @@ import {
   listNodes,
   stats,
 } from "#/server/grid/queries.ts";
-import { askText } from "./llm";
+import { aiEnabled, askText } from "./llm";
 import type { Source } from "./triage";
 
 export type ChatTurn = { role: "user" | "assistant"; text: string };
@@ -105,7 +105,9 @@ function answerWithRules(): string {
   const forecasts = currentForecasts();
   const rifts = open.map((g) => `${g.glitchId} (${g.status.toLowerCase()})`).join(", ");
   return [
-    "My crystal is dim, guardian: no spirit of foresight is bound to me (no AI key is set). Yet the plain runes still speak:",
+    aiEnabled()
+      ? "My crystal is dim, guardian: the spirits of foresight are worn out or busy right now (the free AI quota is used up or every model is overloaded; try again in a few minutes). Yet the plain runes still speak:"
+      : "My crystal is dim, guardian: no spirit of foresight is bound to me (no AI key is set). Yet the plain runes still speak:",
     `• Tremors unanswered: ${s.openBySeverity.critical} critical, ${s.openBySeverity.high} high, ${s.openBySeverity.medium} medium.`,
     `• Omens of things to come: ${forecasts.length} early warning${forecasts.length === 1 ? "" : "s"}.`,
     `• The freshest rifts in the weave: ${rifts || "none, for now"}.`,

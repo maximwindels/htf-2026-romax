@@ -9,6 +9,7 @@ import type { RunbookStep } from "#/lib/glitch.ts";
 import { aiEnabled, aiLabel } from "#/server/ai/llm.ts";
 import { askOracle, type ChatTurn } from "#/server/ai/assistant.ts";
 import { writeRunbook } from "#/server/ai/runbook.ts";
+import { wizardVoice } from "#/server/ai/voice.ts";
 import { addAiNote, typeByRules } from "#/server/ai/triage.ts";
 
 /** Which AI engine is active (Gemini, Claude or rules)? The UI shows it in the Oracle. */
@@ -110,3 +111,18 @@ export const splitEcho = createServerFn({ method: "POST" })
     announce(glitchId);
     return { glitchId };
   });
+
+/**
+ * Any guardian: the Oracle's answer as wizard speech (base64 WAV), or null when the voice is not
+ * available; the browser then uses its own speech synthesis.
+ */
+export const speakOracle = createServerFn({ method: 'POST' })
+  .validator((text: string) => {
+    const clean = String(text ?? '').trim()
+    if (!clean) throw new Error('Nothing to say')
+    return clean.slice(0, 4000)
+  })
+  .handler(async ({ data }) => {
+    requireGuardian()
+    return wizardVoice(data)
+  })

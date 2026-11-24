@@ -1530,3 +1530,13 @@ main { container: page / inline-size; }
   .grid-ui button.user-chip { width: auto; padding: 6px; }
   .user-pop { left: auto; right: 0; bottom: calc(100% + 12px); }
 }
+
+/* Oracle voice: speak/stop under answers, mute toggle in the header (oracleVoice.ts) */
+.grid-ui button.oracle-speak {
+  display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; margin-top: 4px;
+  padding: 3px 8px; font: 700 11px/1 var(--font-label); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--pink); background: transparent; border: 1px solid currentColor; border-radius: 6px; box-shadow: none;
+}
+.grid-ui button.oracle-speak:hover:not(:disabled) { color: var(--text); transform: none; box-shadow: none; }
+.grid-ui button.oracle-speak.is-speaking { color: var(--bg); background: var(--pink); border-color: var(--pink); }
+.grid-ui button.oracle-mute.is-muted { color: var(--sev-critical); }

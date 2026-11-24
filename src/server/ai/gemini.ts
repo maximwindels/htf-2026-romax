@@ -6,20 +6,40 @@ import { z } from "zod";
 
 /**
  * Models to try, in order. The first one is GEMINI_MODEL from .env when set.
- * Busy (503), rate-limited (429) or unknown (404) models are skipped for the next one,
- * because the free tier often has one model overloaded while another one is fine.
+ * On the free tier one model is often out of quota or overloaded while another one is fine,
+ * so a failing model hands the request to the next one. The fast lite model comes second:
+ * it is rarely busy.
  */
-const DEFAULT_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-3.5-flash",
-  "gemini-2.5-flash-lite",
-];
+const DEFAULT_MODELS = ['gemini-2.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.8-flash'];
 
 function modelChain() {
   const pinned = process.env.GEMINI_MODEL;
   return pinned
     ? [pinned, ...DEFAULT_MODELS.filter((m) => m !== pinned)]
     : DEFAULT_MODELS;
+}
+
+/**
+ * Models that failed recently are skipped until this time (ms), so the operator does not wait
+ * for a model that is known to be out of quota (429: 10 minutes) or overloaded (2 minutes).
+ */
+const restingUntil = new Map<string, number>();
+
+function rest(model: string, status: number | undefined) {
+  const minutes = status === 429 ? 10 : status === 404 ? 60 : 2;
+  restingUntil.set(model, Date.now() + minutes * 60_000);
+}
+
+/** The models to try now: the ones that are not resting, or all of them if every one is. */
+function availableModels() {
+  const now = Date.now();
+  const awake = modelChain().filter((m) => (restingUntil.get(m) ?? 0) <= now);
+  return awake.length ? awake : modelChain();
+}
+
+/** Errors that will not get better on another model: a bad request or a bad key. */
+function isPermanent(status: number | undefined) {
+  return status === 400 || status === 401 || status === 403;
 }
 
 /** The model that is tried first (shown in the UI). */
@@ -55,22 +75,23 @@ async function generate(
   config: GenerateContentConfig,
 ) {
   if (!geminiConfigured()) return null;
-  for (const model of modelChain()) {
+  for (const model of availableModels()) {
     try {
       const response = await getClient().models.generateContent({
         model,
         contents,
         config,
       });
+      restingUntil.delete(model);
       return response.text?.trim() || null;
     } catch (error) {
       const status = statusOf(error);
-      const retryable =
-        status === 503 || status === 429 || status === 404 || status === 500;
       console.warn(
-        `[ai] gemini ${kind} on ${model}: ${status ?? ""} ${error instanceof Error ? error.message.slice(0, 160) : String(error)}`,
+        `[ai] gemini ${kind} on ${model}: ${status ?? "timeout"} ${error instanceof Error ? error.message.slice(0, 160) : String(error)}`,
       );
-      if (!retryable) return null;
+      // A bad request or key fails on every model; anything else (quota, busy, timeout) may work on the next one.
+      if (isPermanent(status)) return null;
+      rest(model, status);
     }
   }
   console.warn(
