@@ -4,7 +4,8 @@ import { PulseLock } from '#/components/PulseLock.tsx'
 import { RuneSequence } from '#/components/RuneSequence.tsx'
 import { Stabilizer } from '#/components/Stabilizer.tsx'
 import { recordGameFail } from '#/lib/games.functions.ts'
-import { playFlawless, playTimerTick } from '#/dashboard/sound.ts'
+import { useSoundOn } from '#/dashboard/alerts.ts'
+import { playFlawless, playTimerTick, setGameMusicIntensity, startGameMusic, stopGameMusic } from '#/dashboard/sound.ts'
 import { FLAWLESS_TUNE_MS, GAME_LIMIT_MS, type GameRunMeta } from '#/lib/games.ts'
 import { GAME_KINDS_ALL, gameFor, type GameKind, type StabilizeProof } from '#/lib/stabilize.ts'
 
@@ -49,16 +50,26 @@ export function StabilizeGame({ seed, hints, onStabilize, ...props }: StabilizeG
     setOutcome({ kind: 'playing' })
   }, [attempt, game])
 
+  // Tension music while an attempt is running and sound is on; silence on a win, fail or leaving.
+  const soundOn = useSoundOn()
+  useEffect(() => {
+    if (outcome.kind === 'playing' && soundOn) startGameMusic()
+    else stopGameMusic()
+  }, [outcome.kind, soundOn])
+  useEffect(() => () => stopGameMusic(), [])
+
   async function win(proof: StabilizeProof) {
     const durationMs = Math.round(performance.now() - startedAt.current)
     const flawless = game === 'tune' ? durationMs <= FLAWLESS_TUNE_MS : misses.current === 0
     const run = { durationMs, flawless }
     await onStabilize(proof, run) // throws on a server refusal: the game shows the error
+    stopGameMusic() // before the game's "sealed" bells
     if (flawless) playFlawless()
     setOutcome({ kind: 'won', run })
   }
 
   function fail() {
+    stopGameMusic()
     setOutcome({ kind: 'failed' })
     // The server records the fail and tells every screen (backlash banner + stinger there).
     void recordGameFail({ data: { game, target: seed } }).catch(() => {})
@@ -152,6 +163,7 @@ function GameTimer({ startedAt, onExpire }: { startedAt: React.RefObject<number>
     const id = setInterval(() => {
       const remaining = Math.max(0, GAME_LIMIT_MS - (performance.now() - startedAt.current))
       setLeft(remaining)
+      setGameMusicIntensity(1 - remaining / GAME_LIMIT_MS) // the music speeds up as time runs out
       const second = Math.ceil(remaining / 1000)
       if (second <= 5 && second > 0 && second !== lastTick.current) {
         lastTick.current = second

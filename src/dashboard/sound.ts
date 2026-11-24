@@ -93,6 +93,8 @@ type ToneOptions = {
   lowpass?: number;
   /** Reverb send, 0-1. */
   space?: number;
+  /** Play into this node instead of the master bus input (e.g. the music's own fader). */
+  dest?: AudioNode;
 };
 
 function tone(audio: AudioContext, out: Bus, o: ToneOptions) {
@@ -116,7 +118,7 @@ function tone(audio: AudioContext, out: Bus, o: ToneOptions) {
     filter.frequency.value = o.lowpass;
     node = node.connect(filter);
   }
-  node.connect(out.input);
+  node.connect(o.dest ?? out.input);
   if (o.space) {
     const send = audio.createGain();
     send.gain.value = o.space;
@@ -149,6 +151,7 @@ type NoiseOptions = {
   from: number;
   to?: number;
   space?: number;
+  dest?: AudioNode;
 };
 
 let noiseBuffer: AudioBuffer | null = null;
@@ -173,7 +176,7 @@ function noise(audio: AudioContext, out: Bus, o: NoiseOptions) {
   env.gain.exponentialRampToValueAtTime(o.peak, start + 0.004);
   env.gain.exponentialRampToValueAtTime(0.0001, end);
   const node = src.connect(filter).connect(env);
-  node.connect(out.input);
+  node.connect(o.dest ?? out.input);
   if (o.space) {
     const send = audio.createGain();
     send.gain.value = o.space;
@@ -415,4 +418,102 @@ export function playTimerTick(urgent: boolean) {
   tone(audio, out, { freq: urgent ? 900 : 700, dur: 0.04, peak: 0.04, type: 'sine' });
   tone(audio, out, { freq: urgent ? 90 : 120, dur: 0.12, peak: urgent ? 0.1 : 0.06, type: 'sine' });
   noise(audio, out, { dur: 0.02, peak: 0.03, filter: 'bandpass', from: 1400 });
+}
+
+// ---------- mini-game music ----------
+
+/**
+ * Generated tension music under a mini-game: a dark loop in D minor,
+ * D minor > B flat > G minor > A7 (the C sharp in A7 pulls back to D: "time is running out").
+ * Pulsing bass, a quiet arpeggio, a soft kick on 1 and 3, ticking hats.
+ * `setGameMusicIntensity` (0-1, the timer) speeds it up and opens it up toward the end.
+ * Notes are scheduled a little ahead on the audio clock, so the timing never jitters.
+ */
+const BARS: { bass: number; arp: number[] }[] = [
+  { bass: 73.42, arp: [293.66, 349.23, 440, 523.25] }, // D minor 7
+  { bass: 58.27 * 2, arp: [233.08, 293.66, 349.23, 440] }, // B flat major 7
+  { bass: 98, arp: [196, 233.08, 293.66, 349.23] }, // G minor 7
+  { bass: 110, arp: [220, 277.18, 329.63, 392] }, // A7
+];
+/** Arpeggio contour over eight 16ths: up and back down. */
+const ARP_ORDER = [0, 1, 2, 3, 2, 1, 0, 1];
+
+type Music = { timer: ReturnType<typeof setInterval>; fader: GainNode; nextTime: number; step: number };
+let music: Music | null = null;
+let intensity = 0;
+
+export function setGameMusicIntensity(value: number) {
+  intensity = Math.max(0, Math.min(1, value));
+}
+
+function musicStep(audio: AudioContext, out: Bus, m: Music, time: number) {
+  const at = Math.max(0, time - audio.currentTime);
+  const s = m.step % 16;
+  const bar = BARS[Math.floor(m.step / 16) % BARS.length];
+  const dest = m.fader;
+  const stepDur = 60 / (92 + intensity * 38) / 4;
+
+  // Bass: 8th notes, accent on the downbeat; the filter opens as time runs out.
+  if (s % 2 === 0) {
+    tone(audio, out, {
+      freq: bar.bass, at, dur: stepDur * 1.8, peak: s === 0 ? 0.09 : 0.06,
+      type: 'sawtooth', lowpass: 260 + intensity * 600, dest,
+    });
+  }
+  // Arpeggio: 16ths, quiet, with a bit of space.
+  tone(audio, out, {
+    freq: bar.arp[ARP_ORDER[s % 8]], at, dur: stepDur * 1.6, peak: 0.022 + intensity * 0.012,
+    type: 'triangle', lowpass: 1500 + intensity * 1500, space: 0.3, dest,
+  });
+  // Kick on 1 and 3.
+  if (s === 0 || s === 8) tone(audio, out, { freq: 90, glideTo: 40, at, dur: 0.22, peak: 0.12, type: 'sine', dest });
+  // Hats: offbeat 8ths, every 16th when it gets tight.
+  if (s % 2 === 1 || intensity > 0.7) {
+    noise(audio, out, { at, dur: 0.03, peak: s % 2 === 1 ? 0.014 : 0.008, filter: 'highpass', from: 7000, dest });
+  }
+  // In the last stretch: a high, dissonant ping on the "and" of 4, like a warning light.
+  if (intensity > 0.75 && s === 14) {
+    tone(audio, out, { freq: 1108.73, at, dur: 0.18, peak: 0.02, type: 'sine', space: 0.4, dest });
+  }
+}
+
+/** Start the mini-game music (no-op if it is already playing or sound is off). */
+export function startGameMusic() {
+  if (music) return;
+  const r = ready();
+  if (!r) return;
+  const { audio, out } = r;
+  const fader = audio.createGain();
+  fader.gain.setValueAtTime(0.0001, audio.currentTime);
+  fader.gain.exponentialRampToValueAtTime(0.8, audio.currentTime + 0.8);
+  fader.connect(out.input);
+  intensity = 0;
+
+  const m: Music = { timer: 0 as unknown as ReturnType<typeof setInterval>, fader, nextTime: audio.currentTime + 0.1, step: 0 };
+  m.timer = setInterval(() => {
+    if (!isSoundOn()) return stopGameMusic(); // muted mid-game
+    // Schedule every step that starts in the next 120 ms.
+    while (m.nextTime < audio.currentTime + 0.12) {
+      musicStep(audio, out, m, m.nextTime);
+      m.nextTime += 60 / (92 + intensity * 38) / 4;
+      m.step++;
+    }
+  }, 25);
+  music = m;
+}
+
+/** Fade the music out (win, fail, or leaving the game). */
+export function stopGameMusic() {
+  const m = music;
+  if (!m || !ctx) return;
+  music = null;
+  clearInterval(m.timer);
+  m.fader.gain.cancelScheduledValues(ctx.currentTime);
+  m.fader.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.12);
+  setTimeout(() => m.fader.disconnect(), 1200);
+}
+
+/** Whether the mini-game music is running (and at which step), for debugging. */
+export function gameMusicState() {
+  return music ? { playing: true, step: music.step, intensity } : { playing: false, step: 0, intensity };
 }
