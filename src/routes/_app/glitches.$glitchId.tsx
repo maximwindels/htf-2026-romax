@@ -4,8 +4,9 @@ import { ArrowLeft, ArrowRight, LoaderCircle, ShieldCheck, Trash2, UserRound } f
 import { EchoForm } from '#/components/EchoForm.tsx'
 import { AetherBadge } from '#/components/AetherBadge.tsx'
 import { StabilizeGame } from '#/components/StabilizeGame.tsx'
-import { StatusBadge } from '#/components/StatusBadge.tsx'
 import { StatusStepper } from '#/components/StatusStepper.tsx'
+import { PixelAvatar } from '#/components/grid/PixelAvatar.tsx'
+import { PixelIcon } from '#/components/grid/PixelIcon.tsx'
 import { playStabilized } from '#/dashboard/sound.ts'
 import { formatTimestamp } from '#/lib/format.ts'
 import {
@@ -48,9 +49,9 @@ export const Route = createFileRoute('/_app/glitches/$glitchId')({
 
 function BackLink() {
   return (
-    <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-fg">
+    <Link to="/glitches" className="back-link">
       <ArrowLeft className="size-4" />
-      Overview
+      All glitches
     </Link>
   )
 }
@@ -64,34 +65,45 @@ function GlitchPage() {
   const [justWon, setJustWon] = useState<string | null>(null)
 
   return (
-    <div className="flex max-w-3xl flex-col gap-8">
-      <div className="flex flex-col gap-4">
+    <div className="glitch-page">
+      <header className="grid-ui glitch-head">
         <BackLink />
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-muted">{glitch.glitchId}</span>
-          <StatusBadge status={glitch.status} />
-          <span className="inline-flex items-center gap-1.5 text-sm text-muted">
-            <UserRound className="size-4" />
+        <span className="ribbon">Glitch {glitch.glitchId}</span>
+        <h1 className="glitch-title">{glitch.description}</h1>
+        <div className="glitch-facts">
+          <span className={`status-chip status-${glitch.status.toLowerCase()}`}>
+            <span className={`glitch-dot status-${glitch.status.toLowerCase()}`} />
+            {STATUS_LABELS[glitch.status]}
+          </span>
+          <span className="who">
             {glitch.assignee ? (
               <>
-                Assigned to <strong className="text-fg">{glitch.assignee}</strong>
-                {isAssignee && ' (you)'}
+                <PixelAvatar codename={glitch.assignee} size={22} />
+                Assigned to <strong>{glitch.assignee}</strong>
+                {isAssignee && <span className="you-tag">you</span>}
               </>
             ) : (
-              'Unassigned'
+              <>
+                <UserRound className="size-4" />
+                Unassigned
+              </>
             )}
           </span>
+          <span className="muted">
+            Leaked on{' '}
+            <time dateTime={glitch.timestamp} suppressHydrationWarning>
+              {formatTimestamp(glitch.timestamp)}
+            </time>
+          </span>
+          <span className="muted">
+            {glitch.echoes.length} echo{glitch.echoes.length === 1 ? '' : 'es'}
+          </span>
         </div>
-        <h1 className="text-3xl font-semibold text-fg">{glitch.description}</h1>
-        <p className="text-sm text-muted">
-          Leaked on{' '}
-          <time dateTime={glitch.timestamp} suppressHydrationWarning>
-            {formatTimestamp(glitch.timestamp)}
-          </time>
-        </p>
-      </div>
+      </header>
 
-      <StatusStepper status={glitch.status} />
+      <div className="card glitch-stepper">
+        <StatusStepper status={glitch.status} />
+      </div>
 
       {/* Stays on screen after the win (the live stream flips the status to FIXED at once),
           so the success state and the "Flawless" line can be seen before it goes. */}
@@ -132,27 +144,32 @@ function GlitchPage() {
         />
       )}
 
-      {isAssignee && <AssigneePanel glitch={glitch} />}
-      {isCommander(guardian) && <CommanderPanel glitch={glitch} defenders={glitch.defenders} />}
+      <div className={`glitch-columns ${isAssignee || isCommander(guardian) ? 'has-side' : ''}`}>
+        <section className="card glitch-story">
+          <div className="card-title section-title">
+            <PixelIcon name="rift" size={18} />
+            Echoes &amp; history
+          </div>
 
-      <section className="flex flex-col gap-5">
-        <h2 className="text-lg font-semibold text-fg">
-          Echoes <span className="font-normal text-muted">({glitch.echoes.length})</span>
-        </h2>
+          <Timeline glitch={glitch} />
 
-        <Timeline glitch={glitch} />
+          <div className="echo-box">
+            <h3>{isAssignee ? 'Send an update on your glitch' : 'Add an echo to this glitch'}</h3>
+            <EchoForm
+              glitchId={glitch.glitchId}
+              placeholder="Any update? What changed, what did you try?"
+              onReported={() => router.invalidate()}
+            />
+          </div>
+        </section>
 
-        <div className="rounded-2xl border border-line p-5">
-          <h3 className="mb-3 text-sm font-medium text-fg">
-            {isAssignee ? 'Send an update on your glitch' : 'Add an echo to this glitch'}
-          </h3>
-          <EchoForm
-            glitchId={glitch.glitchId}
-            placeholder="Any update? What changed, what did you try?"
-            onReported={() => router.invalidate()}
-          />
-        </div>
-      </section>
+        {(isAssignee || isCommander(guardian)) && (
+          <aside className="glitch-side">
+            {isAssignee && <AssigneePanel glitch={glitch} />}
+            {isCommander(guardian) && <CommanderPanel glitch={glitch} defenders={glitch.defenders} />}
+          </aside>
+        )}
+      </div>
     </div>
   )
 }
