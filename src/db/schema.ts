@@ -11,6 +11,11 @@ export const glitches = sqliteTable('glitches', {
   description: text('description').notNull(),
   /** ISO 8601, so lexical order is chronological order. */
   timestamp: text('timestamp').notNull(),
+  /**
+   * Auto-glitches only: the incidents that opened it, as "nodeId/metric" joined by ";".
+   * Lets the system skip duplicates and close the glitch once those alerts are cleared.
+   */
+  source: text('source'),
   /** Defender a commander assigned this glitch to; they send updates as echoes. Null = unassigned. */
   assignedGuardianId: text('assigned_guardian_id').references(() => guardians.guardianId, {
     onDelete: 'set null',

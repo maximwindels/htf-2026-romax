@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getSessionGuardian } from '#/lib/auth.server.ts'
+import { resolveAutoGlitches } from '#/lib/autoGlitches.server.ts'
 import { parseRunMeta } from '#/lib/games.ts'
 import { recordRun } from '#/lib/games.server.ts'
 import { anomalySeed, parseProof, verifyProof } from '#/lib/stabilize.ts'
@@ -43,6 +44,9 @@ export const Route = createFileRoute('/api/anomalies/$id/ack')({
         }
 
         acknowledgeIncident(existing.nodeId, existing.metric)
+        // The auto-glitch this incident opened is fixed too, once all its alerts are cleared.
+        const actor = getSessionGuardian()
+        if (actor) resolveAutoGlitches(actor)
         return Response.json(getAnomaly(id))
       },
     },

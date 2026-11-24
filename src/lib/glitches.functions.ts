@@ -5,7 +5,7 @@ import { echoes, glitchEvents, glitches, guardians } from '#/db/schema.ts'
 import { requireGuardian } from '#/lib/auth.server.ts'
 import { parseRunMeta, type GameRunMeta } from '#/lib/games.ts'
 import { recordRun } from '#/lib/games.server.ts'
-import { announce, assignee, logEvent } from '#/lib/glitches.server.ts'
+import { announce, announceRemoved, assignee, logEvent } from '#/lib/glitches.server.ts'
 import { nextId } from '#/lib/ids.server.ts'
 import { describeProof, parseProof, verifyProof, type StabilizeProof } from '#/lib/stabilize.ts'
 import {
@@ -278,9 +278,12 @@ export const deleteGlitch = createServerFn({ method: 'POST' })
   .validator((glitchId: string) => String(glitchId))
   .handler(async ({ data: glitchId }) => {
     requireGuardian('commander')
+    const row = db.select().from(glitches).where(eq(glitches.glitchId, glitchId)).get()
     db.transaction((tx) => {
       tx.delete(glitchEvents).where(eq(glitchEvents.glitchId, glitchId)).run()
       tx.delete(echoes).where(eq(echoes.glitchId, glitchId)).run()
       tx.delete(glitches).where(eq(glitches.glitchId, glitchId)).run()
     })
+    // Tell every open screen, so its glitch list drops it right away (SSE `glitch` reloads the lists).
+    if (row) announceRemoved(row)
   })

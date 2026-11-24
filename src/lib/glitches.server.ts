@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { db } from "#/db/index.ts";
 import { glitchEvents, glitches, guardians } from "#/db/schema.ts";
-import type { GlitchEventKind } from "#/lib/glitch.ts";
+import type { Glitch, GlitchEventKind } from "#/lib/glitch.ts";
 import type { Guardian } from "#/lib/guardian.ts";
 import type { Tx } from "#/lib/ids.server.ts";
 import { bus } from "#/server/grid/bus.ts";
@@ -20,6 +20,11 @@ export function announce(glitchId: string) {
     .where(eq(glitches.glitchId, glitchId))
     .get();
   if (glitch) bus.emit("glitch", glitch);
+}
+
+/** Same, for a glitch that was just deleted (announce() can't look it up anymore). */
+export function announceRemoved(glitch: Glitch) {
+  bus.emit("glitch", glitch);
 }
 
 /** Write one line of a glitch's history: a status change or a (re)assignment. */

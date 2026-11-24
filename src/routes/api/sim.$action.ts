@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { getSessionGuardian } from '#/lib/auth.server.ts'
+import { resolveAutoGlitches } from '#/lib/autoGlitches.server.ts'
 import { TROUBLE_MODES, type TroubleMode } from '#/lib/grid.ts'
 import { bus } from '#/server/grid/bus.ts'
 import { denyUnless, readTarget } from '#/server/grid/http.ts'
@@ -49,7 +51,11 @@ export const Route = createFileRoute('/api/sim/$action')({
         if (params.action === 'clear') {
           // Stop the running trouble first, or the next tick would raise the same alerts again.
           clearDisturbances()
-          return Response.json({ acknowledged: acknowledgeAllOpen() })
+          const acknowledged = acknowledgeAllOpen()
+          // The glitches those errors opened go too, so the Glitches tab is clean again.
+          const actor = getSessionGuardian()
+          const glitchesClosed = actor ? resolveAutoGlitches(actor, { all: true }) : 0
+          return Response.json({ acknowledged, glitchesClosed })
         }
 
         const { nodeId, metric } = await readTarget(request)
