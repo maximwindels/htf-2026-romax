@@ -8,6 +8,7 @@ import { AlertFeed } from '#/components/grid/AlertFeed';
 import { EarlyWarnings } from '#/components/grid/EarlyWarnings';
 import { MetricChart } from '#/components/grid/MetricChart';
 import { SeverityBadge } from '#/components/grid/SeverityBadge';
+import { TownScene } from '#/components/grid/NodeGrid';
 import { useAnomalies, useForecasts, useNodeStatuses, useNodes, useSeries } from './hooks';
 
 function NodeChart({ metric, nodeId }: { metric: Metric; nodeId: string }) {
@@ -44,7 +45,9 @@ export function NodeDetailPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <div>
+        <div className="node-title">
+          {node && <TownScene node={node} status={statuses[nodeId] ?? 'ok'} className="town-scene detail-scene" />}
+          <div>
           <Link to="/" className="muted small">
             ← Mission control
           </Link>
@@ -52,6 +55,7 @@ export function NodeDetailPage() {
             {node?.name ?? nodeId} <SeverityBadge severity={statuses[nodeId] ?? 'ok'} />
           </h1>
           <div className="muted">Region {node?.region}</div>
+          </div>
         </div>
         {canControlSimulator && (
         <div className="actions">

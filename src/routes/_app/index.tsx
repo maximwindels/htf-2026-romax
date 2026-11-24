@@ -3,6 +3,7 @@ import {createFileRoute, useNavigate} from '@tanstack/react-router'
 import {Plus} from 'lucide-react'
 import {GlitchesTable} from '#/components/GlitchesTable.tsx'
 import {ReportEchoDialog} from '#/components/ReportEchoDialog.tsx'
+import {PixelIcon} from '#/components/grid/PixelIcon.tsx'
 import {OverviewPage as MissionControl} from '#/dashboard/Overview.tsx'
 import {getGlitches} from '#/lib/glitches.functions.ts'
 import type {GlitchListItem} from '#/lib/glitch.ts'
@@ -49,7 +50,10 @@ function OverviewPage() {
       </div>
       <section className="glitches-section flex flex-col gap-4">
         <div className="grid-ui flex items-center justify-between gap-4">
-          <h2>Glitches</h2>
+          <h2 className="section-title">
+            <PixelIcon name="rift" size={27} />
+            Glitches
+          </h2>
           {/* Every guardian (defender and commander) may report an echo. */}
           <button
             type="button"
