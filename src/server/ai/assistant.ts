@@ -98,7 +98,7 @@ function snapshot(): string {
  */
 function answerWithRules(): string {
   const why = aiEnabled()
-    ? "My crystal is clouded, guardian: the spirit of foresight did not answer in time (the AI model is busy or unreachable). Yet the plain runes still speak:"
+    ? "My crystal is dim, guardian: the spirits of foresight are worn out or busy right now (the free AI quota is used up or every model is overloaded; try again in a few minutes). Yet the plain runes still speak:"
     : "My crystal is dim, guardian: no spirit of foresight is bound to me (no AI key is set). Yet the plain runes still speak:";
   const s = stats();
   const open = db

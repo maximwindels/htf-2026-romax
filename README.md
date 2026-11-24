@@ -175,7 +175,7 @@ Choose the engine in `.env` (gitignored, see `.env.example`), then restart `npm 
 
 | `AI_PROVIDER` | Engine | Key |
 |---|---|---|
-| `gemini` (default when its key is set) | Google Gemini Flash, free tier: `gemini-3.8-flash`, then `gemini-3.7-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` and `gemini-3.5-flash` when one is busy or times out (the 2.5 models are closed to new accounts) (`GEMINI_MODEL` to try another model first) | `GEMINI_API_KEY` |
+| `gemini` (default when its key is set) | Google Gemini Flash, free tier: `gemini-2.5-flash`, then `gemini-3.5-flash-lite`, `gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.1-flash-lite` and `gemini-3.5-flash` when one is busy, out of quota or times out (new accounts get a fast 404 on 2.5 and skip it) (`GEMINI_MODEL` to try another model first) | `GEMINI_API_KEY` |
 | `claude` | Anthropic Claude (`claude-opus-5-5`) | `ANTHROPIC_API_KEY` |
 | `rules` | No AI, built-in rules only | none |
 
@@ -189,6 +189,7 @@ Choose the engine in `.env` (gitignored, see `.env.example`), then restart `npm 
 | Automatic assignment | A new glitch goes to the defender with the most experience in its type, preferring fewer open assignments. |
 | Create runbook | **Write runbook** on a glitch page: a 4-7 step plan, stored on the glitch. |
 | Chatbot | **The Oracle** (top-bar button or the `O` key) answers questions about incidents and alerts, using a live snapshot of the grid. |
+| Chatbot voice | **Speak** under an answer: the wizard says it out loud. Gemini text-to-speech (deep `Charon` voice, wizard style; `GEMINI_TTS_VOICE` to change it) played with a lower pitch and a stone-tower echo; without it, the browser voice, low and slow. **Stop** cuts it off, the speaker button in the Oracle header mutes the wizard (remembered), and closing the panel silences him. |
 
 One AI call per echo answers moderation, type, duplicate, resolved and assignment together (JSON output against a schema). With Claude, the server-side refusal fallback is turned on for every call. The Oracle panel shows which engine answers.
 

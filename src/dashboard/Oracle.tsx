@@ -5,9 +5,10 @@ import {
   useSyncExternalStore,
   type FormEvent,
 } from "react";
-import { LoaderCircle, Send, X } from "lucide-react";
+import { LoaderCircle, Send, Square, Volume2, VolumeX, X } from "lucide-react";
 import { WizardMascot } from "#/components/grid/WizardMascot";
 import { askAssistant, getAiStatus } from "#/lib/ai.functions.ts";
+import { speakOracleAnswer, stopOracleVoice, toggleOracleMute, useOracleVoice } from "./oracleVoice";
 
 // Tiny store for "is the Oracle open", shared by the top-bar button, the O key and the panel.
 let open = false;
@@ -48,7 +49,8 @@ export function OraclePanel() {
   const [busy, setBusy] = useState(false);
   /** The wizard hops for a moment when an answer arrives. */
   const [speaking, setSpeaking] = useState(false);
-  const mood = busy ? "thinking" : speaking ? "speaking" : "idle";
+  const voice = useOracleVoice();
+  const mood = busy ? "thinking" : speaking || voice.speakingId ? "speaking" : "idle";
   const [status, setStatus] = useState<{
     enabled: boolean;
     model: string;
@@ -68,6 +70,11 @@ export function OraclePanel() {
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [turns, busy]);
+
+  // Closing the panel silences the wizard.
+  useEffect(() => {
+    if (!isOpen) stopOracleVoice();
+  }, [isOpen]);
 
   async function ask(text: string) {
     const q = text.trim();
@@ -134,6 +141,16 @@ export function OraclePanel() {
         </div>
         <button
           type="button"
+          className={`btn-small ghost oracle-mute ${voice.muted ? "is-muted" : ""}`}
+          onClick={toggleOracleMute}
+          aria-pressed={voice.muted}
+          title={voice.muted ? "The wizard is muted: click to let him speak" : "Mute the wizard's voice"}
+          aria-label={voice.muted ? "Unmute the wizard" : "Mute the wizard"}
+        >
+          {voice.muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+        </button>
+        <button
+          type="button"
           className="btn-small ghost oracle-close"
           onClick={toggleOracle}
           aria-label="Close the Oracle"
@@ -180,6 +197,9 @@ export function OraclePanel() {
                 </span>
               )}
               <p>{t.text}</p>
+              {t.role === "assistant" && t.source !== "error" && !voice.muted && (
+                <SpeakButton id={`turn-${i}`} text={t.text} voice={voice} />
+              )}
             </div>
           );
           if (t.role === "user") return <div key={i} className="oracle-row role-user">{message}</div>;
@@ -232,5 +252,28 @@ export function OraclePanel() {
     </aside>
       )}
     </>
+  );
+}
+
+/** "Speak" under an answer; "Stop" while that answer is being spoken. */
+function SpeakButton({ id, text, voice }: { id: string; text: string; voice: ReturnType<typeof useOracleVoice> }) {
+  const speaking = voice.speakingId === id;
+  const loading = voice.loadingId === id;
+  return (
+    <button
+      type="button"
+      className={`oracle-speak ${speaking ? "is-speaking" : ""}`}
+      onClick={() => (speaking || loading ? stopOracleVoice() : void speakOracleAnswer(id, text))}
+      title={speaking ? "Stop the wizard" : "Let the wizard say it out loud"}
+    >
+      {loading ? (
+        <LoaderCircle className="size-3.5 animate-spin" />
+      ) : speaking ? (
+        <Square className="size-3.5" />
+      ) : (
+        <Volume2 className="size-3.5" />
+      )}
+      {loading ? "Summoning voice…" : speaking ? "Stop" : "Speak"}
+    </button>
   );
 }
