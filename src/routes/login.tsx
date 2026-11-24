@@ -50,7 +50,7 @@ function LoginPage() {
     <div className="grid-ui flex min-h-[var(--screen-h)] items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <PixelCrystal size={64} />
+          <span className="login-emblem block"><PixelCrystal size={112} /></span>
           <span className="ribbon">Guardians of the Grid</span>
           <h1 className="justify-center">Achrona</h1>
           <p className="muted">Identify yourself to enter mission control</p>
