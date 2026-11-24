@@ -1,6 +1,6 @@
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 // Relative imports: drizzle-kit loads this file and doesn't resolve the `#/` alias.
-import { GLITCH_STATUSES } from '../lib/glitch.ts'
+import { GLITCH_EVENT_KINDS, GLITCH_STATUSES } from '../lib/glitch.ts'
 import { GUARDIAN_ROLES } from '../lib/guardian.ts'
 import { METRICS, SEVERITIES } from '../lib/grid.ts'
 
@@ -10,6 +10,10 @@ export const glitches = sqliteTable('glitches', {
   description: text('description').notNull(),
   /** ISO 8601, so lexical order is chronological order. */
   timestamp: text('timestamp').notNull(),
+  /** Defender a commander assigned this glitch to; they send updates as echoes. Null = unassigned. */
+  assignedGuardianId: text('assigned_guardian_id').references(() => guardians.guardianId, {
+    onDelete: 'set null',
+  }),
 })
 
 export const guardians = sqliteTable('guardians', {
@@ -32,6 +36,22 @@ export const echoes = sqliteTable('echoes', {
   reportingGuardianId: text('reporting_guardian_id')
     .notNull()
     .references(() => guardians.guardianId),
+})
+
+/** History of a glitch: every status change and (re)assignment, with who did it and when. */
+export const glitchEvents = sqliteTable('glitch_events', {
+  eventId: integer('event_id').primaryKey({ autoIncrement: true }),
+  glitchId: text('glitch_id')
+    .notNull()
+    .references(() => glitches.glitchId, { onDelete: 'cascade' }),
+  kind: text('kind', { enum: GLITCH_EVENT_KINDS }).notNull(),
+  fromValue: text('from_value'),
+  toValue: text('to_value'),
+  guardianId: text('guardian_id')
+    .notNull()
+    .references(() => guardians.guardianId),
+  /** ISO 8601 */
+  timestamp: text('timestamp').notNull(),
 })
 
 /** One row per logged-in browser; the token lives in an httpOnly cookie. */

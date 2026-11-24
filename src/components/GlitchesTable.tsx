@@ -1,18 +1,30 @@
 import { useRouter } from '@tanstack/react-router'
-import { ChevronRight, MessageSquare } from 'lucide-react'
+import { ChevronRight, MessageSquare, UserRound } from 'lucide-react'
 import { StatusBadge } from '#/components/StatusBadge.tsx'
 import type { GlitchListItem } from '#/lib/glitch.ts'
 import { formatTimestamp } from '#/lib/format.ts'
 
-const columns = ['ID', 'Status', 'Description', 'Echoes', 'Timestamp', '']
+const columns = ['ID', 'Status', 'Description', 'Assignee', 'Echoes', 'Timestamp', '']
 
-export function GlitchesTable({ glitches }: { glitches: GlitchListItem[] }) {
+type GlitchesTableProps = {
+  glitches: GlitchListItem[]
+  /** The logged-in guardian: their own assignments are marked "you". */
+  currentGuardianId?: string
+  /** Shown when the list is empty. */
+  emptyMessage?: string
+}
+
+export function GlitchesTable({
+  glitches,
+  currentGuardianId,
+  emptyMessage = 'No glitches. Achrona is calm, for now.',
+}: GlitchesTableProps) {
   const router = useRouter()
 
   if (glitches.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed border-line px-6 py-12 text-center text-muted">
-        No glitches. Achrona is calm, for now.
+        {emptyMessage}
       </p>
     )
   }
@@ -48,6 +60,19 @@ export function GlitchesTable({ glitches }: { glitches: GlitchListItem[] }) {
                     <StatusBadge status={glitch.status} />
                   </td>
                   <td className="px-5 py-4">{glitch.description}</td>
+                  <td className="px-5 py-4 whitespace-nowrap">
+                    {glitch.assignee ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <UserRound className="size-4 text-muted" strokeWidth={1.75} />
+                        {glitch.assignee}
+                        {glitch.assigneeId === currentGuardianId && (
+                          <span className="rounded-full bg-sky-400/15 px-2 py-0.5 text-xs text-sky-300">you</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-muted">-</span>
+                    )}
+                  </td>
                   <td className="px-5 py-4 text-muted">
                     <span className="inline-flex items-center gap-1.5">
                       <MessageSquare className="size-4" strokeWidth={1.75} />

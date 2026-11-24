@@ -550,3 +550,18 @@ html[data-desync='3'] body::after {
 }
 .desync-banner.is-worse { color: #160f1f; background: var(--grad-creatives); }
 .desync-banner.is-better { color: #e1e7ff; background: var(--grad-hackers); }
+
+/* "Report PDF" link in the top bar: looks like the small 3D buttons. */
+.btn-report {
+  font: 600 12px/1.2 var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e1e7ff; /* light text on the blue button, in light and dark mode */
+  background: var(--grad-hackers);
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-shadow: 0 3px 0 #00163f;
+  white-space: nowrap;
+}
+.btn-report:hover { color: #e1e7ff; transform: translateY(-1px); box-shadow: 0 4px 0 #00163f; }
+.btn-report:active { transform: translateY(2px); box-shadow: 0 1px 0 #00163f; }
