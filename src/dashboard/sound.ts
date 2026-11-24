@@ -166,3 +166,44 @@ export function playStinger() {
   noise.start(t);
   noise.stop(t + 0.9);
 }
+
+// ---------- Rune Sequence tones ----------
+
+/** One note per rune: a pentatonic scale (G A C D E), so any sequence sounds like a melody. */
+const RUNE_NOTES = [392, 440, 523.25, 587.33, 659.25];
+
+export function playRuneTone(rune: number, durationMs = 420) {
+  if (!isSoundOn()) return;
+  const audio = audioContext();
+  if (!audio) return;
+  const t = audio.currentTime;
+  const end = t + durationMs / 1000;
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = RUNE_NOTES[rune % RUNE_NOTES.length];
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.08, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+  osc.connect(gain).connect(audio.destination);
+  osc.start(t);
+  osc.stop(end + 0.02);
+}
+
+/** A wrong rune: a short low buzz. */
+export function playRuneError() {
+  if (!isSoundOn()) return;
+  const audio = audioContext();
+  if (!audio) return;
+  const t = audio.currentTime;
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(140, t);
+  osc.frequency.exponentialRampToValueAtTime(70, t + 0.25);
+  gain.gain.setValueAtTime(0.06, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+  osc.connect(gain).connect(audio.destination);
+  osc.start(t);
+  osc.stop(t + 0.32);
+}

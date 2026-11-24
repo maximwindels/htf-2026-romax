@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Activity, RotateCcw, Timer, Zap } from 'lucide-react'
+import { Activity, RotateCcw, Sparkles, Timer, Zap } from 'lucide-react'
 import { PulseLock } from '#/components/PulseLock.tsx'
+import { RuneSequence } from '#/components/RuneSequence.tsx'
 import { Stabilizer } from '#/components/Stabilizer.tsx'
 import { recordGameFail } from '#/lib/games.functions.ts'
 import { FLAWLESS_TUNE_MS, GAME_LIMIT_MS, type GameRunMeta } from '#/lib/games.ts'
-import { gameFor, type GameKind, type StabilizeProof } from '#/lib/stabilize.ts'
+import { GAME_KINDS_ALL, gameFor, type GameKind, type StabilizeProof } from '#/lib/stabilize.ts'
+
+const GAME_LABELS = {
+  tune: { label: 'frequency tuning', icon: Activity },
+  pulse: { label: 'Chrono-Pulse Lock', icon: Timer },
+  runes: { label: 'Rune Sequence', icon: Sparkles },
+} as const
 
 type StabilizeGameProps = {
   /** A glitch id or anomalySeed(id): picks the game and (for tuning) the target signal. */
@@ -32,7 +39,7 @@ export function StabilizeGame({ seed, hints, onStabilize, ...props }: StabilizeG
   const [outcome, setOutcome] = useState<Outcome>({ kind: 'playing' })
   const startedAt = useRef(0)
   const misses = useRef(0)
-  const other: GameKind = game === 'tune' ? 'pulse' : 'tune'
+
 
   // A new attempt (first one, retry, or game switch) starts a fresh clock.
   useEffect(() => {
@@ -43,7 +50,7 @@ export function StabilizeGame({ seed, hints, onStabilize, ...props }: StabilizeG
 
   async function win(proof: StabilizeProof) {
     const durationMs = Math.round(performance.now() - startedAt.current)
-    const flawless = game === 'pulse' ? misses.current === 0 : durationMs <= FLAWLESS_TUNE_MS
+    const flawless = game === 'tune' ? durationMs <= FLAWLESS_TUNE_MS : misses.current === 0
     const run = { durationMs, flawless }
     await onStabilize(proof, run) // throws on a server refusal: the game shows the error
     setOutcome({ kind: 'won', run })
@@ -81,6 +88,14 @@ export function StabilizeGame({ seed, hints, onStabilize, ...props }: StabilizeG
         </section>
       ) : game === 'tune' ? (
         <Stabilizer key={`tune-${attempt}`} seed={seed} hint={hints?.tune} {...gameProps} />
+      ) : game === 'runes' ? (
+        <RuneSequence
+          key={`runes-${attempt}`}
+          seed={seed}
+          hint={hints?.runes}
+          onMiss={() => (misses.current += 1)}
+          {...gameProps}
+        />
       ) : (
         <PulseLock
           key={`pulse-${attempt}`}
@@ -100,16 +115,22 @@ export function StabilizeGame({ seed, hints, onStabilize, ...props }: StabilizeG
       )}
 
       {outcome.kind !== 'won' && (
-        <div className="grid-ui flex justify-end">
-          <button
-            type="button"
-            className="btn-small ghost inline-flex items-center gap-1.5"
-            onClick={() => setGame(other)}
-            title="Same result, different game (starts a new attempt)"
-          >
-            {other === 'pulse' ? <Timer className="size-4" /> : <Activity className="size-4" />}
-            {other === 'pulse' ? 'Switch to Chrono-Pulse Lock' : 'Switch to frequency tuning'}
-          </button>
+        <div className="grid-ui flex flex-wrap justify-end gap-1">
+          {GAME_KINDS_ALL.filter((k) => k !== game).map((k) => {
+            const Icon = GAME_LABELS[k].icon
+            return (
+              <button
+                key={k}
+                type="button"
+                className="btn-small ghost inline-flex items-center gap-1.5"
+                onClick={() => setGame(k)}
+                title="Same result, different game (starts a new attempt)"
+              >
+                <Icon className="size-4" />
+                Switch to {GAME_LABELS[k].label}
+              </button>
+            )
+          })}
         </div>
       )}
     </div>

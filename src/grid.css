@@ -897,3 +897,58 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
 .run.is-flawless { border-left-color: var(--pink); }
 .run-tag { display: inline-flex; align-items: center; gap: 3px; font: 700 11px/1 var(--font-label); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pink); }
 .run-time { margin-left: auto; }
+
+/* ---------- mini-game 3: Rune Sequence (RuneSequence.tsx) ---------- */
+.rune-board {
+  position: relative;
+  height: 300px;
+  background: radial-gradient(circle at 50% 50%, #21173a, #0d0916 70%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.rune-status {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font: 700 15px/1 var(--font-label); letter-spacing: 0.2em; white-space: nowrap;
+  color: rgba(225, 231, 255, 0.5);
+}
+.rune-status.is-wrong { color: #eb4c2d; }
+.is-done .rune-status { color: #e292f4; }
+
+/* each rune: a dark stone tile with a hard edge in its own colour; lit = filled with that colour */
+.grid-ui button.rune,
+.grid-ui button.rune:hover:not(:disabled),
+.grid-ui button.rune:active:not(:disabled) {
+  position: absolute;
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  margin: -38px 0 0 -38px; /* centre on left/top */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rune-color);
+  background: #1a1230;
+  border: 2px solid color-mix(in srgb, var(--rune-color) 55%, transparent);
+  border-radius: 14px;
+  box-shadow: 0 5px 0 #05030a;
+  transform: none;
+  transition: background 0.08s steps(2), transform 0.08s steps(2);
+  touch-action: manipulation;
+  user-select: none;
+}
+.grid-ui button.rune:hover:not(:disabled) { border-color: var(--rune-color); }
+.grid-ui button.rune:disabled { opacity: 1; cursor: default; }
+.grid-ui button.rune:focus-visible { outline: 2px solid var(--rune-color); outline-offset: 3px; }
+.grid-ui button.rune.is-lit {
+  color: #0d0916;
+  background: var(--rune-color);
+  border-color: var(--rune-color);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 #05030a;
+}
+.rune svg { width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.rune-key { position: absolute; bottom: 3px; right: 7px; font: 700 11px/1 var(--font-mono); color: rgba(225, 231, 255, 0.45); }
+.rune.is-lit .rune-key { color: rgba(13, 9, 22, 0.6); }
+.rune-done { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); }
+.rune-game.is-miss { border-top-color: var(--sev-critical); animation: pulse-miss 0.32s steps(6); }

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Activity, Timer, Trophy, Zap } from 'lucide-react'
+import { Activity, Sparkles, Timer, Trophy, Zap } from 'lucide-react'
 import { AetherBadge } from '#/components/AetherBadge.tsx'
 import { RoleBadge } from '#/components/RoleBadge.tsx'
 import { useLeaderboard } from '#/dashboard/games.ts'
@@ -30,7 +30,7 @@ function LeaderboardPage() {
         </div>
         <p className="muted small leaderboard-rules">
           Win <b>+{POINTS.win}</b> · flawless <b>+{POINTS.flawless}</b> and an Aether Charge · time's up{' '}
-          <b>{POINTS.fail}</b>. Flawless: Chrono-Pulse without a miss, or tuning within 10 s.
+          <b>{POINTS.fail}</b>. Flawless: Chrono-Pulse without a miss, Runes without a wrong rune, or tuning within 10 s.
         </p>
       </div>
 
@@ -92,7 +92,7 @@ function LeaderboardPage() {
         <ul className="runs">
           {data?.recent.map((run) => (
             <li key={run.runId} className={`run run-${run.result} ${run.flawless ? 'is-flawless' : ''}`}>
-              {run.game === 'pulse' ? <Timer className="size-4" /> : <Activity className="size-4" />}
+              {run.game === 'pulse' ? <Timer className="size-4" /> : run.game === 'runes' ? <Sparkles className="size-4" /> : <Activity className="size-4" />}
               <b>{run.codename}</b>
               <span className="muted">
                 {run.result === 'fail' ? 'ran out of time on' : run.flawless ? 'flawlessly stabilized' : 'stabilized'}{' '}

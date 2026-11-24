@@ -3,12 +3,12 @@
  * No `#/` imports: drizzle-kit loads this file through the schema.
  *
  * - Every attempt has a time limit. Running out of time is a fail.
- * - A flawless win (pulse: no misses; tune: within FLAWLESS_TUNE_MS) gives the guardian an
+ * - A flawless win (pulse: no misses; runes: no wrong rune; tune: within FLAWLESS_TUNE_MS) gives the guardian an
  *   Aether Charge and makes the whole grid 10 % more immune: each open error drains less magic.
  * - A fail makes the Desync strike back: +15 % corruption at once (fading out), immunity lost.
  */
 
-export const GAME_KINDS = ['tune', 'pulse'] as const
+export const GAME_KINDS = ['tune', 'pulse', 'runes'] as const
 export type GameKindName = (typeof GAME_KINDS)[number]
 export const GAME_RESULTS = ['win', 'fail'] as const
 export type GameResult = (typeof GAME_RESULTS)[number]
