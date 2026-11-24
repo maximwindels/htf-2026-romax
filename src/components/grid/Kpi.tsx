@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { NodeStatus } from '#/dashboard/hooks';
 import { useDesyncLevel } from '#/dashboard/desync';
+import { PixelIcon, type PixelIconName } from './PixelIcon';
 
 export interface KpiProps {
   label: string;
@@ -8,12 +9,15 @@ export interface KpiProps {
   sub?: string;
   /** colours the card: ok = blue, medium = purple, high = orange, critical = red */
   tone?: NodeStatus;
+  /** pixel-art icon in the corner */
+  icon?: PixelIconName;
 }
 
 /** One KPI card on the overview. */
-export function Kpi({ label, value, sub, tone = 'ok' }: KpiProps) {
+export function Kpi({ label, value, sub, tone = 'ok', icon }: KpiProps) {
   return (
     <div className={`card kpi tone-${tone}`}>
+      {icon && <PixelIcon name={icon} size={36} className="kpi-icon" />}
       <div className="kpi-label">{label}</div>
       <CorruptibleValue seed={label} value={value} />
       {sub && <div className="kpi-sub">{sub}</div>}

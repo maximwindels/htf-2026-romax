@@ -8,6 +8,7 @@ import { Kpi } from "#/components/grid/Kpi";
 import { MetricChart } from "#/components/grid/MetricChart";
 import { NetworkMap } from "#/components/grid/NetworkMap";
 import { NodeGrid } from "#/components/grid/NodeGrid";
+import { PixelIcon } from "#/components/grid/PixelIcon";
 import { TroubleControls } from "#/components/grid/TroubleControls";
 import { fmtUnit } from "./format";
 import {
@@ -117,12 +118,14 @@ export function OverviewPage() {
       <section className="kpis">
         <Kpi
           label="Grid health"
+          icon="crystal"
           value={`${health.percent}%`}
           sub={`${online}/${nodes.length} online · ${health.degraded} degraded`}
           tone={health.tone}
         />
         <Kpi
           label="Early warnings"
+          icon="eye"
           value={String(forecasts.length)}
           sub={
             avgLead != null
@@ -133,19 +136,23 @@ export function OverviewPage() {
         />
         <Kpi
           label="Avg mana load"
+          icon="load"
           value={fmtUnit("load", average(valuesOf(latest, "load")))}
         />
         <Kpi
           label="Avg latency"
+          icon="latency"
           value={fmtUnit("latency", average(valuesOf(latest, "latency")))}
         />
         <Kpi
           label="Max sync drift"
+          icon="drift"
           value={fmtUnit("drift", maxDrift)}
           tone={maxDrift > 30 ? "high" : "ok"}
         />
         <Kpi
           label="Open alerts"
+          icon="skull"
           value={String(alerts.total)}
           sub={`${alerts.critical} critical · ${stats?.lastHour ?? 0} last hour`}
           tone={alerts.tone}
@@ -166,7 +173,10 @@ export function OverviewPage() {
         ))}
       </section>
 
-      <h2>Nodes</h2>
+      <h2 className="section-title">
+        <PixelIcon name="town" size={27} />
+        Nodes
+      </h2>
       <NodeGrid nodes={nodes} statuses={statuses} />
     </div>
   );

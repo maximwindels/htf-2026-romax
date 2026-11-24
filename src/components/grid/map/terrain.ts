@@ -23,7 +23,7 @@ export type Biome =
   | "grass";
 
 /** Muted "old map" colours: two shades per biome, chosen by noise, so the land doesn't look flat. */
-const BIOME_COLORS: Record<Biome, [string, string]> = {
+export const BIOME_COLORS: Record<Biome, [string, string]> = {
   sea: ["#14304f", "#17385c"],
   shore: ["#6d6446", "#7a7050"],
   river: ["#1b4670", "#1f4f7c"],

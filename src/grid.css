@@ -207,10 +207,88 @@ a { color: var(--pink); text-decoration: none; }
 .kpi.tone-high .kpi-value, .kpi.tone-high .kpi-sub { color: var(--bg); }
 
 .split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap: 14px; margin-bottom: 16px; }
-.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; }
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } /* 4 metrics = a 2x2 grid, no gaps */
 .charts-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-content: start; }
-.chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font: 700 16px/1 var(--font-caps); letter-spacing: 0.05em; color: var(--orange); }
-.chart-head .big { color: var(--text); }
+/* ---------- metric charts as "scrying panels": dark glass, pixel grid, stepped line (MetricChart.tsx) ---------- */
+.chart-card { border-top: 3px solid var(--metric, var(--blue)); }
+.chart-card.metric-load { --metric: #7fb2ff; }
+.chart-card.metric-latency { --metric: #e292f4; }
+.chart-card.metric-temperature { --metric: #f0a04b; }
+.chart-card.metric-drift { --metric: #38bdf8; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; font: 700 16px/1 var(--font-caps); letter-spacing: 0.05em; color: var(--orange); }
+.chart-title { display: inline-flex; align-items: center; gap: 10px; }
+.chart-now { display: inline-flex; align-items: baseline; gap: 8px; }
+.chart-now .big { color: var(--text); font-size: 24px; }
+.trend { font: 700 12px/1 var(--font-mono); color: var(--metric, var(--muted)); }
+.scope-frame {
+  position: relative;
+  padding: 6px 2px 0;
+  border: 1px solid #2b2240;
+  border-radius: 10px;
+  /* the same dark glass as the map and the stabilizer, with a faint pixel grid */
+  background-color: #0d0916;
+  background-image:
+    linear-gradient(rgba(225, 231, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(225, 231, 255, 0.045) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.scope-frame svg { shape-rendering: crispEdges; }
+.scope-state {
+  position: absolute;
+  top: 8px;
+  left: 50px;
+  z-index: 1;
+  font: 700 11px/1 var(--font-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border: 2px solid currentColor;
+  pointer-events: none;
+}
+.scope-state.tone-ok { color: #7fb2ff; }
+.scope-state.tone-high { color: #f48d30; }
+.scope-state.tone-critical { color: #fff; background: #eb4c2d; border-color: #eb4c2d; animation: blink 0.9s steps(1) infinite; }
+.chart-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chart-stats span { font: 600 12px/1 var(--font-mono); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 7px; }
+.chart-stats em { font-style: normal; font-family: var(--font-caps); color: var(--orange); margin-right: 4px; }
+.chart-stats .limit em { color: var(--sev-critical); }
+.scry-tip { background: #140c1c; color: #e1e7ff; border: 1px solid #3a3150; padding: 6px 8px; font: 12px/1.4 var(--font-mono); box-shadow: 0 3px 0 #01296a; }
+.scry-tip-time { color: #9d9bb8; margin-bottom: 2px; }
+.scry-tip-row { display: flex; justify-content: space-between; gap: 14px; }
+
+/* ---------- pixel icons + section titles ---------- */
+.pixel-icon { display: inline-block; flex-shrink: 0; image-rendering: pixelated; }
+.section-title { display: flex; align-items: center; gap: 10px; }
+
+/* KPI cards: pixel icon in the corner and a stepped pixel band along the bottom */
+.kpi { position: relative; overflow: hidden; }
+.kpi-icon { position: absolute; top: 12px; right: 12px; }
+.kpi-icon + .kpi-label { padding-right: 42px; }
+.kpi::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 8px, transparent 8px 12px);
+  pointer-events: none;
+}
+
+/* every card gets small pixel corner brackets, like the frames on the event site */
+.card { position: relative; }
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--orange), var(--orange)) top left / 10px 2px no-repeat,
+    linear-gradient(var(--orange), var(--orange)) top left / 2px 10px no-repeat,
+    linear-gradient(var(--purple), var(--purple)) bottom right / 10px 2px no-repeat,
+    linear-gradient(var(--purple), var(--purple)) bottom right / 2px 10px no-repeat;
+  opacity: 0.8;
+}
 
 /* ---------- ley-line map (pixel nodes) ---------- */
 /* ---------- map of Achrona: pixel terrain, towns, roads and ley lines (NetworkMap.tsx) ----------
@@ -343,16 +421,39 @@ a { color: var(--pink); text-decoration: none; }
 
 /* ---------- nodes ---------- */
 .node-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
-.node-card { color: var(--text); border-top: 4px solid var(--blue); transition: transform 0.1s; }
+/* node cards: the town on its own land, then pixel meters per metric (NodeGrid.tsx) */
+.node-card { color: var(--text); border-top: 4px solid var(--blue); overflow: hidden; padding-top: 0; transition: transform 0.1s; }
 .node-card:hover { transform: translateY(-3px); border-color: var(--line); border-top-color: var(--pink); }
 .node-card.status-medium { border-top-color: var(--sev-medium); }
 .node-card.status-high { border-top-color: var(--sev-high); }
 .node-card.status-critical { border-color: var(--sev-critical); border-top-color: var(--sev-critical); }
+.town-scene {
+  display: block;
+  width: calc(100% + 36px);
+  height: auto;
+  margin: 0 -18px 10px;
+  background: linear-gradient(180deg, #0d0916, #1d1433); /* night sky, in both themes */
+  border-bottom: 1px solid var(--line);
+}
+/* node page: the same town scene, bigger, next to the title */
+.node-title { display: flex; align-items: flex-end; gap: 16px; }
+.town-scene.detail-scene { width: 192px; margin: 0; border: 1px solid var(--line); border-radius: 10px; }
+.scene-corruption { animation: px-flicker 1.4s steps(1) infinite; }
+.scene-building.status-critical { animation: town-glitch 2.4s steps(1) infinite; }
+.node-region { margin-top: 2px; font: 700 12px/1 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.node-meters { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+.pmeter-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.pmeter-label { display: inline-flex; align-items: center; gap: 6px; font: 700 13px/1 var(--font-caps); color: var(--orange); white-space: nowrap; }
+.pmeter-value { font: 700 17px/1 var(--font-label); white-space: nowrap; }
+.pmeter-value small { margin-left: 2px; font-size: 11px; color: var(--muted); }
+.pmeter-bar { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; height: 7px; margin-top: 5px; }
+.pmeter-bar span { background: var(--panel-2); border: 1px solid var(--line); }
+.pmeter-bar span.on { background: #5b9bff; border-color: #5b9bff; }
+.pmeter.tone-high .pmeter-bar span.on { background: var(--sev-high); border-color: var(--sev-high); }
+.pmeter.tone-critical .pmeter-bar span.on { background: var(--sev-critical); border-color: var(--sev-critical); }
+.pmeter.tone-critical .pmeter-value { color: var(--sev-critical); }
 .node-head { display: flex; justify-content: space-between; align-items: center; }
 .node-name { font: 400 24px/1.1 var(--font-display); }
-.node-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin: 12px 0 0; }
-.node-metrics dt { font: 700 13px/1 var(--font-caps); color: var(--orange); }
-.node-metrics dd { margin: 3px 0 0; font: 700 20px/1 var(--font-label); }
 
 /* ---------- table ---------- */
 .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
