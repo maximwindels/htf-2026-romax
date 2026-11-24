@@ -1,5 +1,5 @@
 /**
- * The tabs of the app, in one place: the tab bar, the sidebar and the number-key shortcuts all use this list.
+ * The sections of the app, in one place: the sidebar and the number-key shortcuts both use this list.
  * The dashboard shows a bit of everything; every other tab shows one part in full.
  */
 import type { PixelIconName } from "#/components/grid/PixelIcon";

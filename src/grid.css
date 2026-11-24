@@ -954,45 +954,79 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
 .rune-done { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); }
 .rune-game.is-miss { border-top-color: var(--sev-critical); animation: pulse-miss 0.32s steps(6); }
 
-/* ---------- tabs: one section per tab, the dashboard shows a bit of everything (TabBar.tsx) ---------- */
-.tab-bar {
-  display: flex;
-  gap: 4px;
-  padding: 8px 28px 0;
-  overflow-x: auto;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-  scrollbar-width: thin;
+/* ---------- the one navigation: sections on the left (Sidebar.tsx, list in dashboard/tabs.ts) ----------
+   A dark rail in both themes, like the starter's sidebar, styled like the old pixel tabs. */
+.side-nav {
+  /* Holds the icon rail's width in the layout; the panel inside opens over the page. */
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 68px;
+  flex-shrink: 0;
+  z-index: 40;
 }
-.tab {
-  display: inline-flex;
+.side-nav-panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 68px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 12px 18px;
+  background: var(--sidebar);
+  border-right: 1px solid rgba(225, 231, 255, 0.08);
+  transition: width 0.18s ease, box-shadow 0.18s ease;
+}
+/* open on hover, and when a link inside has keyboard focus (not after a mouse click) */
+.side-nav:hover .side-nav-panel,
+.side-nav:has(:focus-visible) .side-nav-panel {
+  width: 212px;
+  box-shadow: 6px 0 0 rgba(5, 3, 10, 0.35); /* hard edge, no blur, like the theme */
+}
+.side-nav-logo { display: flex; padding: 4px 0 10px 6px; border-bottom: 1px solid rgba(225, 231, 255, 0.08); }
+.side-nav-list { display: flex; flex-direction: column; gap: 3px; overflow: hidden auto; }
+.side-nav .side-tab {
+  text-transform: none;
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px 9px;
+  gap: 10px;
+  /* 12px + 20px icon + 12px = 44px, so the icon sits in the middle of the closed rail */
+  padding: 9px 12px;
   font: 700 15px/1 var(--font-caps);
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: rgba(225, 231, 255, 0.65);
+  border-radius: 10px;
   white-space: nowrap;
-  border: 1px solid transparent;
-  border-bottom: 0;
-  border-radius: 10px 10px 0 0;
-  position: relative;
-  top: 1px;
 }
-.tab:hover { color: var(--text); background: var(--panel); }
-.tab.is-active { color: var(--orange); background: var(--panel); border-color: var(--line); }
-/* the active tab gets a pixel strip on top, like the chart cards */
-.tab.is-active::before {
+.side-nav .side-tab:hover { color: #e1e7ff; background: rgba(225, 231, 255, 0.06); }
+.side-nav .side-tab.is-active { color: #e69e41; background: rgba(225, 231, 255, 0.09); }
+/* the active item gets a pixel strip on its left edge */
+.side-nav .side-tab.is-active::before {
   content: '';
   position: absolute;
-  left: 8px;
-  right: 8px;
-  top: -1px;
-  height: 3px;
-  background: repeating-linear-gradient(90deg, var(--orange) 0 6px, transparent 6px 8px);
+  left: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  background: repeating-linear-gradient(180deg, #e69e41 0 5px, transparent 5px 7px);
 }
-.tab-key { font: 600 10px/1 var(--font-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 2px 4px; opacity: 0.7; }
-@media (max-width: 900px) { .tab-bar { padding: 6px 12px 0; } .tab-key { display: none; } }
+.side-nav .side-tab:focus-visible { outline: 2px solid #e292f4; outline-offset: -2px; }
+/* names and key numbers: hidden (and not hoverable) while closed, fade in when open */
+.side-tab-label, .side-tab-key { opacity: 0; visibility: hidden; transition: opacity 0.12s ease; }
+.side-nav:hover :is(.side-tab-label, .side-tab-key),
+.side-nav:has(:focus-visible) :is(.side-tab-label, .side-tab-key) { opacity: 1; visibility: visible; transition-delay: 0.06s; }
+.side-tab-key {
+  margin-left: auto;
+  font: 600 10px/1 var(--font-mono);
+  color: rgba(225, 231, 255, 0.45);
+  border: 1px solid rgba(225, 231, 255, 0.15);
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.side-nav-user { margin-top: auto; display: flex; padding: 10px 0 0 2px; border-top: 1px solid rgba(225, 231, 255, 0.08); }
+/* the brand in the top bar is a link home now */
+.topbar a.brand:hover .brand-title { color: #fff; }
 
 /* ---------- dashboard: compact blocks, each links to its full tab ---------- */
 .block-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 22px 0 10px; }
@@ -1190,3 +1224,80 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
 .guardian-stats dt { display: inline-flex; align-items: center; gap: 6px; font: 700 13px/1 var(--font-caps); color: var(--orange); }
 .guardian-stats dd { margin: 0; font: 700 18px/1 var(--font-label); }
 .guardian-stats .is-warn dd { color: var(--sev-high); }
+
+/* =====================================================================================
+   Responsive: one place that makes every page work from a phone (375 px) to a projector.
+   Rules above keep their look; these only stop things from forcing the page wider than the
+   screen, and rearrange the chrome for small screens.
+   ===================================================================================== */
+
+/* Columns may shrink below their content (1fr alone means "at least as wide as the content",
+   which let the map and charts push the page wider than the phone). */
+.split, .dash-main, .glitch-columns.has-side { min-width: 0; }
+.split > *, .dash-main > *, .charts > *, .kpis > *, .glitch-columns > * { min-width: 0; }
+
+/* Card grids: never ask for more than the screen has. */
+.node-grid, .roster { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+.charts-2 { grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
+.stab-sliders { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
+.kpis { grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
+.toolbar input:not([type]) { min-width: min(260px, 100%); }
+.toasts { width: min(330px, calc(100vw - 32px)); }
+
+/* The top bar wraps instead of pushing the page wider. */
+.topbar-right { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }
+
+@media (max-width: 1100px) {
+  .dash-main, .glitch-columns.has-side, .anomaly-summary { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .split, .charts, .map-tab .split, .dash-bottom { grid-template-columns: minmax(0, 1fr); }
+  .topbar-clock, .magic-label { display: none; }
+}
+
+/* ---------- phones ---------- */
+@media (max-width: 640px) {
+  /* The side rail becomes a bottom bar: touch screens have no hover, and the page gets its width back. */
+  .side-nav {
+    position: fixed;
+    inset: auto 0 0 0;
+    top: auto;
+    width: 100%;
+    height: 58px;
+  }
+  .side-nav-panel,
+  .side-nav:hover .side-nav-panel,
+  .side-nav:has(:focus-visible) .side-nav-panel {
+    position: static;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    border-right: 0;
+    border-top: 1px solid rgba(225, 231, 255, 0.12);
+    box-shadow: none;
+  }
+  .side-nav-logo { display: none; }
+  .side-nav-list { flex: 1; flex-direction: row; justify-content: space-between; overflow: auto hidden; scrollbar-width: none; }
+  .side-nav .side-tab { padding: 10px 5px; justify-content: center; }
+  .side-nav .side-tab.is-active::before { left: 8px; right: 8px; top: auto; bottom: 0; width: auto; height: 3px; background: repeating-linear-gradient(90deg, #e69e41 0 5px, transparent 5px 7px); }
+  .side-tab-label, .side-tab-key,
+  .side-nav:hover :is(.side-tab-label, .side-tab-key) { display: none; }
+  .side-nav-user { margin: 0; padding: 0 0 0 6px; border-top: 0; border-left: 1px solid rgba(225, 231, 255, 0.12); }
+  /* the user menu opens upward, from the right edge */
+  .side-nav-user .user-menu-pop { left: auto; right: 0; bottom: calc(100% + 10px); margin: 0; }
+  /* room for the bottom bar */
+  main { padding-bottom: 84px !important; }
+  .toasts { right: 16px; bottom: 74px; }
+
+  .topbar { padding: 8px 12px; gap: 8px; }
+  .brand-title { font-size: 24px; }
+  .topbar-right { gap: 8px; margin-left: 0; width: 100%; justify-content: space-between; }
+  .magic-bar { width: 64px; }
+  .grid-ui h1 { font-size: 28px; }
+  .podium { grid-template-columns: minmax(0, 1fr); }
+  .page-head { margin-bottom: 14px; }
+  .ribbon { font-size: 13px; padding: 7px 20px; }
+}

@@ -1,73 +1,53 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
-import {
-  Activity,
-  Castle,
-  ChartLine,
-  LayoutGrid,
-  LogOut,
-  Map,
-  Sparkles,
-  TriangleAlert,
-  Trophy,
-  Users,
-  type LucideIcon,
-} from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { AetherBadge } from '#/components/AetherBadge.tsx'
+import { PixelCrystal } from '#/components/grid/PixelCrystal'
+import { PixelIcon } from '#/components/grid/PixelIcon'
 import { RoleBadge } from '#/components/RoleBadge.tsx'
+import { visibleTabs } from '#/dashboard/tabs'
 import { logout } from '#/lib/auth.functions.ts'
 import { isCommander, type Guardian } from '#/lib/guardian.ts'
 
-type NavItem = {
-  label: string
-  icon: LucideIcon
-  to: '/' | '/map' | '/vitals' | '/nodes' | '/glitches' | '/anomalies' | '/leaderboard' | '/guardians'
-  /** Hidden for defenders. */
-  commanderOnly?: boolean
-}
-
-const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutGrid, to: '/' },
-  { label: 'Map', icon: Map, to: '/map' },
-  { label: 'Vitals', icon: ChartLine, to: '/vitals' },
-  { label: 'Nodes', icon: Castle, to: '/nodes' },
-  { label: 'Glitches', icon: Sparkles, to: '/glitches' },
-  { label: 'Anomalies', icon: TriangleAlert, to: '/anomalies' },
-  { label: 'Leaderboard', icon: Trophy, to: '/leaderboard' },
-  { label: 'Guardians', icon: Users, to: '/guardians', commanderOnly: true },
-]
-
-// Icon-only items: the label lives in aria-label/title for screen readers and hover.
-const itemClass =
-  'flex size-12 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white'
-const activeClass = 'bg-white/10 text-white'
-
+/**
+ * The one navigation of the app: every section on the left, with its pixel icon, name and
+ * number key (1-8, see KeyboardShortcuts). The dashboard only lights up on "/" itself; the other
+ * sections stay lit on their detail pages (a glitch page lights "Glitches"). It shows only the
+ * icons and opens fully on hover (grid.css .side-nav).
+ */
 export function Sidebar({ guardian }: { guardian: Guardian }) {
-  const visibleItems = navItems.filter((item) => !item.commanderOnly || isCommander(guardian))
+  const tabs = visibleTabs(isCommander(guardian))
 
   return (
-    <aside className="sticky top-0 flex h-screen w-20 shrink-0 flex-col items-center bg-sidebar py-5">
-      <div className="mb-6 flex size-12 items-center justify-center rounded-xl bg-linear-to-br from-accent-from to-accent-to text-white shadow-md shadow-black/30">
-        <Activity className="size-7" strokeWidth={2} />
-      </div>
+    // The aside keeps the narrow icon-rail width in the layout; the inner panel slides open over the
+    // page on hover or keyboard focus, so the content never jumps (grid.css .side-nav).
+    <aside className="side-nav grid-ui">
+      <div className="side-nav-panel">
+      <Link to="/" className="side-nav-logo" title="Achrona · dashboard" aria-label="Achrona, go to the dashboard">
+        <PixelCrystal />
+      </Link>
 
-      <nav className="flex w-full flex-1 flex-col items-center gap-1">
-        {visibleItems.map(({ label, icon: Icon, to }) => (
+      <nav className="side-nav-list" aria-label="Sections">
+        {tabs.map((tab, i) => (
           <Link
-            key={label}
-            to={to}
-            aria-label={label}
-            title={label}
-            className={itemClass}
-            activeOptions={{ exact: to === '/' }}
-            activeProps={{ className: activeClass }}
+            key={tab.to}
+            to={tab.to}
+            className="side-tab"
+            activeOptions={{ exact: tab.to === '/' }}
+            activeProps={{ className: 'side-tab is-active', 'aria-current': 'page' }}
+            title={`${tab.label} (${i + 1})`}
           >
-            <Icon className="size-6" strokeWidth={1.5} />
+            <PixelIcon name={tab.icon} size={20} />
+            <span className="side-tab-label">{tab.label}</span>
+            <kbd className="side-tab-key">{i + 1}</kbd>
           </Link>
         ))}
       </nav>
 
-      <UserMenu guardian={guardian} />
+      <div className="side-nav-user">
+        <UserMenu guardian={guardian} />
+      </div>
+      </div>
     </aside>
   )
 }
@@ -116,7 +96,7 @@ function UserMenu({ guardian }: { guardian: Guardian }) {
       </button>
 
       {open && (
-        <div className="absolute bottom-0 left-full z-20 ml-3 w-56 rounded-2xl border border-line bg-card p-2 shadow-xl shadow-black/10">
+        <div className="user-menu-pop absolute bottom-0 left-full z-20 ml-3 w-56 rounded-2xl border border-line bg-card p-2 shadow-xl shadow-black/10">
           <div className="flex flex-col gap-2 px-3 py-2">
             <span className="text-xs text-muted">Logged in as</span>
             <span className="inline-flex items-center gap-2 font-semibold text-fg">

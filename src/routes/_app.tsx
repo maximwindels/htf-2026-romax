@@ -8,7 +8,6 @@ import { Toasts } from '#/components/grid/Toasts'
 import { useDesync } from '#/dashboard/desync'
 import { CurseBanner } from '#/dashboard/CurseBanner'
 import { TopBar } from '#/dashboard/TopBar'
-import { TabBar } from '#/dashboard/TabBar'
 import { useLiveStream } from '#/dashboard/live'
 import { getCurrentGuardian } from '#/lib/auth.functions.ts'
 
@@ -50,9 +49,8 @@ function LiveArea() {
     <div className="min-w-0 flex-1">
       <DesyncEffects state={desync} />
       <TopBar liveStatus={liveStatus} desync={desync} />
-      <TabBar />
       <CurseBanner />
-      <main className="min-w-0 px-16 py-10 max-md:px-4 max-md:py-6">
+      <main className="min-w-0 px-4 py-6 md:px-8 md:py-8 xl:px-14 xl:py-10">
         <Outlet />
       </main>
       <Toasts />

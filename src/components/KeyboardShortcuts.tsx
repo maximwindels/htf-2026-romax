@@ -11,7 +11,7 @@ import {
   openShortcutsHelp,
   useShortcutsHelpOpen,
 } from '#/lib/shortcuts.ts'
-import { toggleTheme } from '#/lib/theme.ts'
+import { togglePresent, toggleTheme } from '#/lib/theme.ts'
 
 /** How long after `G` the second key of a "go to" chord is accepted. */
 const CHORD_MS = 1200
@@ -51,6 +51,7 @@ export function KeyboardShortcuts({ guardian }: { guardian: Guardian }) {
       if (e.key === '?') return run(openShortcutsHelp)
       if (key === 'g') return run(() => (chordUntil = Date.now() + CHORD_MS))
       if (key === 't') return run(toggleTheme)
+      if (key === 'p') return run(togglePresent)
       if (key === 'n') {
         // On the Glitches tab the dialog opens right there; everywhere else on the dashboard.
         const to = path === '/glitches' || path === '/glitches/' ? '/glitches' : '/'

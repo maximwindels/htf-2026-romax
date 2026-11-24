@@ -7,6 +7,7 @@ export const SHORTCUTS: { group: string; items: { keys: string[]; label: string;
     items: [
       { keys: ['?'], label: 'Show these shortcuts' },
       { keys: ['T'], label: 'Toggle light / dark mode' },
+      { keys: ['P'], label: 'Presentation mode (bigger, for a projector)' },
       { keys: ['N'], label: 'Report a new echo' },
       { keys: ['1', '…', '8'], label: 'Switch tab (Dashboard, Map, Vitals, Nodes, Glitches, ...)' },
       { keys: ['G', 'O'], label: 'Go to the dashboard' },
