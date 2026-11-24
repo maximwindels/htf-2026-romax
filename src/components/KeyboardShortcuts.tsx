@@ -12,7 +12,7 @@ import {
   openShortcutsHelp,
   useShortcutsHelpOpen,
 } from '#/lib/shortcuts.ts'
-import { toggleTheme } from '#/lib/theme.ts'
+import { togglePresent, toggleTheme } from '#/lib/theme.ts'
 
 /** How long after `G` the second key of a "go to" chord is accepted. */
 const CHORD_MS = 1200
@@ -53,14 +53,16 @@ export function KeyboardShortcuts({ guardian }: { guardian: Guardian }) {
       if (key === 'g') return run(() => (chordUntil = Date.now() + CHORD_MS))
       if (key === 't') return run(toggleTheme)
       if (key === 'o') return run(toggleOracle)
+      if (key === 'p') return run(togglePresent)
       if (key === 'n') {
         // On the Glitches tab the dialog opens right there; everywhere else on the dashboard.
         const to = path === '/glitches' || path === '/glitches/' ? '/glitches' : '/'
         return run(() => router.navigate({ to, search: { report: true } }))
       }
 
-      // 1-8: switch tab, in the order of the tab bar.
-      if (/^[1-9]$/.test(e.key)) {
+      // 1-8: switch tab, in the order of the tab bar. Not while a Rune Sequence is on screen:
+      // that game uses 1-5 for its runes.
+      if (/^[1-9]$/.test(e.key) && !document.querySelector('[data-owns-digit-keys]')) {
         const tab = visibleTabs(isCommander(guardian))[Number(e.key) - 1]
         if (tab) return run(() => router.navigate({ to: tab.to }))
       }

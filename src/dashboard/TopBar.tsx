@@ -1,8 +1,9 @@
-import { Keyboard, Moon, Sun, Volume2, VolumeX } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { Keyboard, Moon, Presentation, Sun, Volume2, VolumeX } from 'lucide-react'
 import { DESYNC_LEVELS, type DesyncState } from './desync'
 import { PixelCrystal } from '#/components/grid/PixelCrystal'
 import { openShortcutsHelp } from '#/lib/shortcuts.ts'
-import { toggleTheme, useTheme } from '#/lib/theme.ts'
+import { togglePresent, toggleTheme, usePresent, useTheme } from '#/lib/theme.ts'
 import { toggleSound, useSoundOn } from './alerts'
 import { fmtTime } from './format'
 import { useNow } from './hooks'
@@ -14,14 +15,16 @@ export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync:
   const now = useNow(1000)
   const soundOn = useSoundOn()
   const theme = useTheme()
+  const present = usePresent()
 
   return (
     <header className="topbar grid-ui">
-      <div className="brand">
+      {/* The brand doubles as the way home. */}
+      <Link to="/" className="brand" title="Back to the dashboard">
         <PixelCrystal />
         <span className="brand-title extrude">Achrona</span>
         <span className="brand-sub">Guardians of the Grid</span>
-      </div>
+      </Link>
 
       <div className="topbar-right">
         <div
@@ -55,7 +58,7 @@ export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync:
           Report PDF
         </a>
         <button
-          className="btn-small ghost inline-flex items-center"
+          className="btn-small ghost inline-flex items-center max-sm:hidden"
           onClick={openShortcutsHelp}
           title="Keyboard shortcuts (?)"
           aria-label="Keyboard shortcuts"
@@ -69,6 +72,16 @@ export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync:
           aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
           {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        </button>
+        {/* Presentation mode: bigger and higher contrast, for a projector. Not useful on a phone. */}
+        <button
+          className={`btn-small inline-flex items-center gap-1.5 whitespace-nowrap max-sm:hidden ${present ? 'present-toggle is-on' : 'ghost'}`}
+          onClick={togglePresent}
+          title={present ? 'Leave presentation mode (P)' : 'Presentation mode: bigger and clearer on a projector (P)'}
+          aria-pressed={present}
+        >
+          <Presentation className="size-4" />
+          {present && 'Presenting'}
         </button>
         {/* Mute switch for everything: alert beeps, the Desync hum and the stabilize chime. Off by default. */}
         <button
@@ -84,7 +97,7 @@ export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync:
           <span className="live-dot" /> {liveStatus}
         </span>
         {/* Server and browser clocks differ; the browser's wins. */}
-        <span className="mono muted" suppressHydrationWarning>
+        <span className="mono muted topbar-clock" suppressHydrationWarning>
           {fmtTime(now)}
         </span>
       </div>

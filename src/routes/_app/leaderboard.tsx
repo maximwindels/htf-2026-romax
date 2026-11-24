@@ -35,7 +35,7 @@ function LeaderboardPage() {
         </div>
         <p className="muted small leaderboard-rules">
           Win <b>+{POINTS.win}</b> · flawless <b>+{POINTS.flawless}</b> and an Aether Charge · time's up{' '}
-          <b>{POINTS.fail}</b>. Flawless: Chrono-Pulse without a miss, or tuning within 10 s.
+          <b>{POINTS.fail}</b>. Flawless: Chrono-Pulse without a miss, Runes without a wrong rune, or tuning within 10 s.
         </p>
       </div>
 
@@ -116,7 +116,7 @@ function LeaderboardPage() {
         <ul className="runs">
           {data?.recent.map((run) => (
             <li key={run.runId} className={`run run-${run.result} ${run.flawless ? 'is-flawless' : ''}`}>
-              <PixelIcon name={run.result === 'fail' ? 'skull' : run.flawless ? 'crystal' : run.game === 'pulse' ? 'latency' : 'vitals'} size={18} />
+              <PixelIcon name={run.result === 'fail' ? 'skull' : run.flawless ? 'crystal' : run.game === 'pulse' ? 'latency' : run.game === 'runes' ? 'rift' : 'vitals'} size={18} />
               <b>{run.codename}</b>
               <span className="muted">
                 {run.result === 'fail' ? 'ran out of time on' : run.flawless ? 'flawlessly stabilized' : 'stabilized'}{' '}

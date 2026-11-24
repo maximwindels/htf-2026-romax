@@ -1,7 +1,8 @@
 /**
  * The stabilize mini-games: a glitch in CONTAINING (or a critical anomaly) can only be cleared by
  * winning one. Game 1 "tune": match frequency and phase to the incident's own signal.
- * Game 2 "pulse" (Chrono-Pulse Lock): stop the sweeping hand in the zone, twice in a row. Below: game 1 first.
+ * Game 2 "pulse" (Chrono-Pulse Lock): stop the sweeping hand in the zone, twice in a row.
+ * Game 3 "runes" (Rune Sequence): repeat the order in which five runes light up.
  * Shared by client (to draw and check) and server (to verify), so it must stay free of server imports.
  */
 
@@ -84,11 +85,38 @@ export const PULSE = {
 /** Server tolerance for a reported hit: looser than the zone (about 55 ms each side), for frame timing. */
 export const PULSE_MAX_OFFSET_MS = 160
 
-export type GameKind = 'tune' | 'pulse'
+// ---------- third mini-game: Rune Sequence ----------
+
+/** Five runes light up in an order; repeat it. A wrong rune replays the sequence. */
+export const RUNES = {
+  count: 5,
+  length: 5,
+  /** How long each rune stays lit while the sequence plays, and the gap between them. */
+  litMs: 520,
+  gapMs: 160,
+} as const
+
+/**
+ * The sequence for an incident, derived from its seed: the server can compute it too, so this
+ * proof is checked for real. No rune twice in a row, so every step is a visible change.
+ */
+export function runeSequence(seed: string): number[] {
+  let h = hash(`${seed}:runes`)
+  const out: number[] = []
+  while (out.length < RUNES.length) {
+    h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d) >>> 0
+    const rune = h % RUNES.count
+    if (rune !== out.at(-1)) out.push(rune)
+  }
+  return out
+}
+
+export const GAME_KINDS_ALL = ['tune', 'pulse', 'runes'] as const
+export type GameKind = (typeof GAME_KINDS_ALL)[number]
 
 /** Which mini-game an incident gets: fixed per seed, so it's varied but the same every time. */
 export function gameFor(seed: string): GameKind {
-  return hash(`${seed}:game`) % 2 === 0 ? 'tune' : 'pulse'
+  return GAME_KINDS_ALL[hash(`${seed}:game`) % GAME_KINDS_ALL.length]
 }
 
 /**
@@ -100,6 +128,8 @@ export type StabilizeProof =
   | ({ kind: 'tune' } & Signal)
   /** How far each hit was from the middle of the zone, in ms (0 = dead centre). */
   | { kind: 'pulse'; offsetsMs: number[] }
+  /** The runes in the order they were entered. */
+  | { kind: 'runes'; sequence: number[] }
 
 /** Reads a proof from an untrusted request body. A bare { frequency, phase } counts as 'tune'. */
 export function parseProof(raw: unknown): StabilizeProof | null {
@@ -107,6 +137,10 @@ export function parseProof(raw: unknown): StabilizeProof | null {
   if (body.kind === 'pulse') {
     const offsets = Array.isArray(body.offsetsMs) ? body.offsetsMs.map(Number) : []
     return { kind: 'pulse', offsetsMs: offsets }
+  }
+  if (body.kind === 'runes') {
+    const sequence = Array.isArray(body.sequence) ? body.sequence.map(Number).slice(0, 20) : []
+    return { kind: 'runes', sequence }
   }
   const frequency = Number(body.frequency)
   const phase = Number(body.phase)
@@ -117,6 +151,11 @@ export function parseProof(raw: unknown): StabilizeProof | null {
 export function verifyProof(seed: string, proof: StabilizeProof | null): boolean {
   if (!proof) return false
   if (proof.kind === 'tune') return isInTune(proof, targetSignal(seed))
+  if (proof.kind === 'runes') {
+    // The only proof the server can check for real: it knows the sequence too.
+    const expected = runeSequence(seed)
+    return proof.sequence.length === expected.length && proof.sequence.every((r, i) => r === expected[i])
+  }
   return (
     proof.offsetsMs.length >= PULSE.hitsNeeded &&
     proof.offsetsMs.every((ms) => Number.isFinite(ms) && Math.abs(ms) <= PULSE_MAX_OFFSET_MS)
@@ -128,6 +167,7 @@ export function describeProof(proof: StabilizeProof): string {
   if (proof.kind === 'tune') {
     return `Stabilized the frequency at ${proof.frequency.toFixed(2)} Hz, phase ${Math.round(proof.phase)}°. Glitch fixed.`
   }
+  if (proof.kind === 'runes') return `Echoed the rune sequence (${proof.sequence.length} runes). Glitch fixed.`
   const worst = Math.max(...proof.offsetsMs.map((ms) => Math.abs(Math.round(ms))))
   return `Locked the chrono-pulse: ${proof.offsetsMs.length} hits in a row, within ${worst} ms. Glitch fixed.`
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { LoaderCircle, Timer } from 'lucide-react'
-import { playStabilized } from '#/dashboard/sound.ts'
+import { playPulseHit, playPulseMiss, playStabilized } from '#/dashboard/sound.ts'
 import { PULSE, type StabilizeProof } from '#/lib/stabilize.ts'
 
 type Stage = 'playing' | 'sending' | 'done'
@@ -122,6 +122,7 @@ export function PulseLock({ onStabilize, onDone, doneLabel = 'Timeline locked', 
 
   function miss() {
     onMiss?.()
+    playPulseMiss()
     comboRef.current = 0
     offsetsRef.current = []
     setCombo(0)
@@ -163,6 +164,7 @@ export function PulseLock({ onStabilize, onDone, doneLabel = 'Timeline locked', 
     setCombo(comboRef.current)
     const great = angle <= zoneStart + PULSE.greatDeg
     flash(great ? 'great' : 'hit')
+    playPulseHit(great, comboRef.current)
     setBurst({ key: performance.now(), angle, great })
     if (comboRef.current >= PULSE.hitsNeeded) {
       turnStartRef.current = null

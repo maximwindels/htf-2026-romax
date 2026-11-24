@@ -65,6 +65,8 @@ function GlitchPage() {
   const { guardian } = Route.useRouteContext()
   const router = useRouter()
   const isAssignee = glitch.assigneeId === guardian.guardianId
+  /** The glitch whose mini-game was just won: keep showing it for a moment. */
+  const [justWon, setJustWon] = useState<string | null>(null)
 
   return (
     <div className="glitch-page">
@@ -108,11 +110,27 @@ function GlitchPage() {
         <StatusStepper status={glitch.status} />
       </div>
 
-      {glitch.status === 'CONTAINING' && (
+      {/* Stays on screen after the win (the live stream flips the status to FIXED at once),
+          so the success state and the "Flawless" line can be seen before it goes. */}
+      {(glitch.status === 'CONTAINING' || justWon === glitch.glitchId) && (
         <StabilizeGame
+          key={glitch.glitchId}
           seed={glitch.glitchId}
-          onStabilize={(proof, run) => stabilizeGlitch({ data: { glitchId: glitch.glitchId, proof, run } })}
-          onDone={() => router.invalidate()}
+          onStabilize={async (proof, run) => {
+            setJustWon(glitch.glitchId)
+            try {
+              return await stabilizeGlitch({ data: { glitchId: glitch.glitchId, proof, run } })
+            } catch (err) {
+              setJustWon(null)
+              throw err
+            }
+          }}
+          onDone={() =>
+            setTimeout(() => {
+              setJustWon(null)
+              void router.invalidate()
+            }, 2500)
+          }
           doneLabel="Stabilized · glitch fixed"
           hints={{
             tune: (

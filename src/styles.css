@@ -109,3 +109,31 @@ body {
 :root[data-theme='light'] :is(.grid-ui h1, .extrude) { color: #fff; }
 /* Less grain on a light background. */
 :root[data-theme='light'] body::before { opacity: 0.04; }
+/* The sidebar is a dark rail in both themes: keep its active item orange (the rule above would
+   repaint it, and this file wins over grid.css, which sits in a CSS layer). */
+:root[data-theme='light'] .side-nav .side-nav-list .side-tab.is-active[data-status] { color: #e69e41; }
+
+/* ---------- Presentation mode: <html data-present="on"> (P, or the button in the top bar) ----------
+   For a projector or a big screen seen from across a room:
+   - everything larger (more on bigger screens), so the smallest text is still readable
+   - more contrast: secondary text and lines brighter
+   - no grain or scanlines, which turn into mush on a projector */
+:root[data-present='on'] { --present-zoom: 1.2; zoom: var(--present-zoom); }
+@media (min-width: 1600px) { :root[data-present='on'] { --present-zoom: 1.35; } }
+@media (min-width: 2400px) { :root[data-present='on'] { --present-zoom: 1.6; } }
+/* the sidebar is one screen tall: undo the zoom on its height */
+:root[data-present='on'] .side-nav { height: calc(100vh / var(--present-zoom)); }
+
+:root[data-present='on'] {
+  --muted: #c9c7e0;
+  --line: rgba(225, 231, 255, 0.24);
+}
+:root[data-present='on'][data-theme='light'] {
+  --muted: #3e3852;
+  --line: rgba(58, 36, 16, 0.3);
+}
+:root[data-present='on'] body::before,
+:root[data-present='on'] body::after { display: none; }
+
+/* the button that switches it shows when it is on */
+.grid-ui button.present-toggle.is-on { background: var(--grad-magic); color: #160f1f; box-shadow: 0 3px 0 var(--indigo); }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSoundOn } from '#/dashboard/alerts';
 import { DESYNC_LEVELS, setDesyncLevel, type DesyncState } from '#/dashboard/desync';
-import { playStabilized, playStinger, setHum } from '#/dashboard/sound';
+import { playLevelShift, playStabilized, playStinger, setHum } from '#/dashboard/sound';
 
 /**
  * Applies The Desync to the whole app: sets <html data-desync="0-3"> for the CSS corruption,
@@ -33,6 +33,7 @@ export function DesyncEffects({ state }: { state: DesyncState }) {
           : `The Desync recedes · level ${level}: ${DESYNC_LEVELS[level].name}`,
     });
     if (level === 0) playStabilized();
+    else playLevelShift(worse);
     const timer = setTimeout(() => setBanner(null), 2600);
     return () => clearTimeout(timer);
   }, [level]);
