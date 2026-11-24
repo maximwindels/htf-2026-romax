@@ -1,6 +1,6 @@
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 // Relative imports: drizzle-kit loads this file and doesn't resolve the `#/` alias.
-import { GLITCH_EVENT_KINDS, GLITCH_STATUSES } from '../lib/glitch.ts'
+import { AI_ACTIONS, GLITCH_EVENT_KINDS, GLITCH_STATUSES, GLITCH_TYPES } from '../lib/glitch.ts'
 import { GAME_KINDS, GAME_RESULTS } from '../lib/games.ts'
 import { GUARDIAN_ROLES } from '../lib/guardian.ts'
 import { METRICS, SEVERITIES } from '../lib/grid.ts'
@@ -20,6 +20,30 @@ export const glitches = sqliteTable('glitches', {
   assignedGuardianId: text('assigned_guardian_id').references(() => guardians.guardianId, {
     onDelete: 'set null',
   }),
+  /** What kind of glitch this is, set by the AI triage (or the keyword rules without AI). */
+  glitchType: text('glitch_type', { enum: GLITCH_TYPES }),
+  /** AI-generated runbook: JSON array of { title, detail } steps. */
+  runbook: text('runbook'),
+  /** Who wrote the runbook: 'ai' (Claude) or 'rules' (the offline template). */
+  runbookSource: text('runbook_source'),
+})
+
+/**
+ * What the AI did to a glitch, shown in its timeline: grouped a duplicate echo, reopened it,
+ * closed it, picked its type or its defender. Separate from glitch_events, which are always
+ * done by a guardian.
+ */
+export const aiNotes = sqliteTable('ai_notes', {
+  noteId: integer('note_id').primaryKey({ autoIncrement: true }),
+  glitchId: text('glitch_id')
+    .notNull()
+    .references(() => glitches.glitchId, { onDelete: 'cascade' }),
+  action: text('action', { enum: AI_ACTIONS }).notNull(),
+  message: text('message').notNull(),
+  /** 'ai' when Claude decided, 'rules' when the offline fallback did */
+  source: text('source').notNull(),
+  /** ISO 8601 */
+  timestamp: text('timestamp').notNull(),
 })
 
 export const guardians = sqliteTable('guardians', {

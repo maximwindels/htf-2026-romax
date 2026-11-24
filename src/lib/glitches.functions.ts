@@ -1,12 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
 import { asc, count, desc, eq } from 'drizzle-orm'
 import { db } from '#/db/index.ts'
-import { echoes, glitchEvents, glitches, guardians } from '#/db/schema.ts'
+import { aiNotes, echoes, glitchEvents, glitches, guardians } from '#/db/schema.ts'
 import { requireGuardian } from '#/lib/auth.server.ts'
 import { parseRunMeta, type GameRunMeta } from '#/lib/games.ts'
 import { recordRun } from '#/lib/games.server.ts'
 import { announce, announceRemoved, assignee, logEvent } from '#/lib/glitches.server.ts'
 import { nextId } from '#/lib/ids.server.ts'
+import { addAiNote, codenameOf, triageEcho } from '#/server/ai/triage.ts'
 import { describeProof, parseProof, verifyProof, type StabilizeProof } from '#/lib/stabilize.ts'
 import {
   GLITCH_STATUSES,
@@ -38,6 +39,7 @@ export const getGlitches = createServerFn({ method: 'GET' }).handler(
         description: glitches.description,
         timestamp: glitches.timestamp,
         echoCount: count(echoes.echoId),
+        glitchType: glitches.glitchType,
         assigneeId: glitches.assignedGuardianId,
         assignee: assignee.codename,
       })
@@ -97,6 +99,13 @@ export const getGlitch = createServerFn({ method: 'GET' })
       .map((g) => g.id)
     const i = order.indexOf(glitchId)
 
+    const notes = db
+      .select()
+      .from(aiNotes)
+      .where(eq(aiNotes.glitchId, glitchId))
+      .orderBy(asc(aiNotes.timestamp), asc(aiNotes.noteId))
+      .all()
+
     const assigned = glitch.assignedGuardianId
       ? db.select().from(guardians).where(eq(guardians.guardianId, glitch.assignedGuardianId)).get()
       : undefined
@@ -105,6 +114,7 @@ export const getGlitch = createServerFn({ method: 'GET' })
       ...glitch,
       echoes: rows,
       events,
+      aiNotes: notes,
       assigneeId: glitch.assignedGuardianId,
       assignee: assigned?.codename ?? null,
       newerId: order[i - 1] ?? null,
@@ -121,20 +131,56 @@ export const reportEcho = createServerFn({ method: 'POST' })
     description: cleanDescription(data?.description),
     glitchId: data?.glitchId ? String(data.glitchId) : undefined,
   }))
-  .handler(async ({ data }): Promise<{ glitchId: string; echoId: string }> => {
+  .handler(async ({ data }): Promise<{ glitchId: string; echoId: string; ai: string }> => {
     const guardian = requireGuardian()
     const timestamp = new Date().toISOString()
 
+    // AI triage (or its rules): moderation, type, duplicate, "resolved?", best defender.
+    const triage = await triageEcho(data.description, data.glitchId)
+    if (!triage.accept) throw new Error(`Echo not accepted: ${triage.rejectReason || 'this does not look like a report'}`)
+    const by = triage.source === 'ai' ? 'AI' : 'Rules'
+
+    const notes: { action: Parameters<typeof addAiNote>[1]; message: string }[] = []
     const result = db.transaction((tx) => {
       let glitchId = data.glitchId
       if (glitchId) {
         const exists = tx.select().from(glitches).where(eq(glitches.glitchId, glitchId)).get()
         if (!exists) throw new Error(`Glitch ${glitchId} no longer exists`)
+        // Auto-close: an update that says the problem is gone. A glitch in Containing is closed
+        // through the stabilizer mini-game, so there the AI only suggests it.
+        if (triage.resolves && exists.status !== 'FIXED') {
+          if (exists.status === 'CONTAINING') {
+            notes.push({ action: 'suggested', message: `${by}: this echo says it is resolved. Stabilize the signal to close it. (${triage.reason})` })
+          } else {
+            tx.update(glitches).set({ status: 'FIXED' }).where(eq(glitches.glitchId, glitchId)).run()
+            notes.push({ action: 'closed', message: `${by} closed the glitch: ${triage.reason}` })
+          }
+        }
+      } else if (triage.duplicateOf) {
+        // Duplicate: the echo joins the glitch it is about; a fixed one is reopened.
+        glitchId = triage.duplicateOf
+        const existing = tx.select().from(glitches).where(eq(glitches.glitchId, glitchId)).get()
+        notes.push({ action: 'grouped', message: `${by} grouped a new echo from ${guardian.codename} under this glitch: ${triage.reason}` })
+        if (existing?.status === 'FIXED') {
+          tx.update(glitches).set({ status: 'LEAKED' }).where(eq(glitches.glitchId, glitchId)).run()
+          notes.push({ action: 'reopened', message: `${by} reopened the glitch: the same problem was reported again` })
+        }
       } else {
         glitchId = nextId(tx, 'GL')
         tx.insert(glitches)
-          .values({ glitchId, status: 'LEAKED', description: data.description, timestamp })
+          .values({
+            glitchId,
+            status: 'LEAKED',
+            description: data.description,
+            timestamp,
+            glitchType: triage.glitchType,
+            assignedGuardianId: triage.assignTo,
+          })
           .run()
+        notes.push({ action: 'typed', message: `${by} sorted this as a ${triage.glitchType} glitch` })
+        if (triage.assignTo) {
+          notes.push({ action: 'assigned', message: `${by} assigned it to ${codenameOf(triage.assignTo)}: ${triage.reason}` })
+        }
       }
 
       const echoId = nextId(tx, 'EC')
@@ -149,8 +195,9 @@ export const reportEcho = createServerFn({ method: 'POST' })
         .run()
       return { glitchId, echoId }
     })
+    for (const n of notes) addAiNote(result.glitchId, n.action, n.message, triage.source)
     announce(result.glitchId)
-    return result
+    return { ...result, ai: notes.map((n) => n.message).join(' · ') }
   })
 
 /**
@@ -281,6 +328,7 @@ export const deleteGlitch = createServerFn({ method: 'POST' })
     const row = db.select().from(glitches).where(eq(glitches.glitchId, glitchId)).get()
     db.transaction((tx) => {
       tx.delete(glitchEvents).where(eq(glitchEvents.glitchId, glitchId)).run()
+      tx.delete(aiNotes).where(eq(aiNotes.glitchId, glitchId)).run()
       tx.delete(echoes).where(eq(echoes.glitchId, glitchId)).run()
       tx.delete(glitches).where(eq(glitches.glitchId, glitchId)).run()
     })

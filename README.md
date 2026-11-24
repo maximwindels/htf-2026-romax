@@ -167,6 +167,31 @@ Every page except `/login` needs a logged-in guardian (Maxim's session login, `s
 - **Error modes (commander):** under the demo buttons, *Errors: Calm / Normal / Chaos* sets how much random trouble the simulator makes (none, as before, 4×). Synced live to every dashboard. **Clear all errors** (testing) stops all running trouble and acknowledges every open alert, criticals included.
 - **Keyboard shortcuts:** press <kbd>?</kbd> for the list. <kbd>N</kbd> new echo, <kbd>G</kbd> <kbd>O</kbd>/<kbd>A</kbd>/<kbd>G</kbd> go to overview/anomalies/guardians, <kbd>J</kbd>/<kbd>K</kbd> next/previous glitch (in the list and on a glitch page), <kbd>U</kbd> back, <kbd>S</kbd> jump to the stabilizer. Shortcuts are ignored while typing (`src/components/KeyboardShortcuts.tsx`).
 
+### AI automation
+
+An AI model runs these steps (`src/server/ai/`). Every step also has rules built in: without a key (or without wifi) the app keeps working on those, and every decision shows an **AI** or **Rules** tag.
+
+Choose the engine in `.env` (gitignored, see `.env.example`), then restart `npm run dev`:
+
+| `AI_PROVIDER` | Engine | Key |
+|---|---|---|
+| `gemini` (default when its key is set) | Google Gemini Flash, free tier: `gemini-2.5-flash`, then `gemini-3.5-flash` and `gemini-2.5-flash-lite` when one is busy (`GEMINI_MODEL` to try another model first) | `GEMINI_API_KEY` |
+| `claude` | Anthropic Claude (`claude-opus-5-5`) | `ANTHROPIC_API_KEY` |
+| `rules` | No AI, built-in rules only | none |
+
+| From the README list | What happens |
+|---|---|
+| Handle duplicates | A new echo about an open (or recently fixed) glitch joins that glitch instead of opening a new one. Commanders can undo it: **Split into new glitch** on the echo. |
+| Glitch types | Every glitch is sorted into temporal, mana, thermal, desync, portal, signal or other, with its own pixel icon and colour in the lists. |
+| AI moderation | Spam, gibberish and abusive echoes are refused with a reason (text only: there are no image uploads). |
+| Auto-closable glitches | An update that says the problem is gone closes the glitch. In Containing the AI only suggests it, because there the stabilizer mini-game closes glitches. The same problem reported again reopens a fixed glitch. |
+| Predictive analysis | The forecaster and the auto-glitches from critical anomalies (see above); they also get a type and a defender (by the rules; set `AI_SYSTEM_GLITCHES=on` to use the AI, which costs about one call a minute). |
+| Automatic assignment | A new glitch goes to the defender with the most experience in its type, preferring fewer open assignments. |
+| Create runbook | **Write runbook** on a glitch page: a 4-7 step plan, stored on the glitch. |
+| Chatbot | **The Oracle** (top-bar button or the `O` key) answers questions about incidents and alerts, using a live snapshot of the grid. |
+
+One AI call per echo answers moderation, type, duplicate, resolved and assignment together (JSON output against a schema). With Claude, the server-side refusal fallback is turned on for every call. The Oracle panel shows which engine answers.
+
 ### Code map
 
 ```

@@ -7,12 +7,14 @@
  *   and none at all while an earlier one for it is still open (lib/autoGlitches.server.ts closes it
  *   once its alerts are cleared).
  */
+import { eq } from 'drizzle-orm'
 import { db } from '#/db/index.ts'
 import { glitches, nodes } from '#/db/schema.ts'
 import type { Glitch } from '#/lib/glitch.ts'
 import { incidentsWithOpenGlitch, sourceKey } from '#/lib/autoGlitches.server.ts'
 import { nextId } from '#/lib/ids.server.ts'
 import { METRIC_INFO, type Anomaly } from '#/lib/grid.ts'
+import { enrichNewGlitch, typeByRules } from '#/server/ai/triage.ts'
 import { bus } from './bus'
 import { seriesKey } from './helpers'
 
@@ -35,11 +37,16 @@ export function openGlitchFor(critical: Anomaly[], ts: Date) {
   const source = [...new Set(fresh.map((a) => sourceKey(a.nodeId, a.metric)))].join(';')
   // Same id scheme as echoes reported by guardians (GL-0143), in one transaction.
   const glitch = db.transaction((tx): Glitch => {
-    const row: Glitch = { glitchId: nextId(tx, 'GL'), status: 'LEAKED', description, timestamp: ts.toISOString() }
+    const row: Glitch = { glitchId: nextId(tx, 'GL'), status: 'LEAKED', description, timestamp: ts.toISOString(), glitchType: typeByRules(description) }
     tx.insert(glitches).values({ ...row, source }).run()
     return row
   })
   bus.emit('glitch', glitch)
+  // AI picks the type and a defender in the background (rules when there is no AI key).
+  void enrichNewGlitch(glitch.glitchId).then(() => {
+    const updated = db.select().from(glitches).where(eq(glitches.glitchId, glitch.glitchId)).get()
+    if (updated) bus.emit('glitch', updated)
+  })
 }
 
 /** "Desync wave: Sync drift critical on Ember Forge, Tide Gate" or "Core temp critical on Ember Forge (91.2)". */

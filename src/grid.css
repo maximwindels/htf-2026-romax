@@ -1225,6 +1225,60 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
 .guardian-stats dd { margin: 0; font: 700 18px/1 var(--font-label); }
 .guardian-stats .is-warn dd { color: var(--sev-high); }
 
+/* ==================== AI automation (triage notes, glitch types, runbook, Oracle) ==================== */
+.type-badge { display: inline-flex; align-items: center; gap: 5px; margin-right: 6px; font: 700 12px/1 var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; vertical-align: -2px; }
+.ai-tag { display: inline-block; font: 700 10px/1 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 5px; border: 1px solid currentColor; vertical-align: 1px; }
+.ai-tag.source-ai { color: var(--pink); }
+.ai-tag.source-rules { color: var(--muted); }
+.ai-tag.source-error { color: var(--sev-critical); }
+.ai-note p { color: var(--muted); }
+.ai-note-dot { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; color: var(--pink); background: var(--app, var(--bg)); }
+.split-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 3px 8px; font: 600 12px/1 var(--font-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: transparent; border: 1px dashed var(--line); border-radius: 6px; cursor: pointer; }
+.split-btn:hover { color: var(--text); border-color: var(--pink); }
+
+.runbook .card-title { display: flex; align-items: center; gap: 8px; }
+.runbook-steps { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.runbook-steps li { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: start; }
+.runbook-steps strong { display: block; font-size: 14px; color: var(--text); }
+.runbook-steps p { margin: 2px 0 0; font-size: 13px; color: var(--muted); line-height: 1.35; }
+.runbook-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; font: 700 12px/1 var(--font-label); color: var(--bg); background: var(--orange); }
+.runbook-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; font: 700 13px/1 var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; color: #e1e7ff; background: var(--grad-hackers); border: 0; border-radius: 10px; box-shadow: 0 3px 0 #00163f; cursor: pointer; }
+.runbook-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* the Oracle: chat panel on the right */
+.grid-ui button.oracle-btn { background: linear-gradient(var(--text), var(--text)) padding-box, var(--grad-magic) border-box; color: var(--purple); border: 2px solid transparent; }
+.oracle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 36px));
+  height: min(600px, calc(100vh - 120px));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--pink);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 0 var(--blue-dark); /* hard edge, no glow */
+}
+.oracle-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.oracle-title { font: 400 22px/1 var(--font-display); }
+.oracle-sub { font: 600 12px/1.2 var(--font-mono); color: var(--muted); }
+.oracle-close { margin-left: auto; }
+.oracle-list { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.oracle-empty p { margin: 0 0 10px; color: var(--muted); font-style: italic; }
+.oracle-starters { display: flex; flex-direction: column; gap: 6px; }
+.grid-ui button.oracle-starter { text-align: left; text-transform: none; letter-spacing: 0; font: 500 14px/1.3 var(--font-serif); background: var(--panel-2); border: 1px solid var(--line); box-shadow: 0 2px 0 var(--line); color: var(--text); padding: 8px 10px; }
+.oracle-msg { max-width: 92%; padding: 8px 10px; border-radius: 10px; font-size: 15px; line-height: 1.4; }
+.oracle-msg p { margin: 0; white-space: pre-line; }
+.oracle-msg.role-user { align-self: flex-end; background: var(--grad-hackers); color: #e1e7ff; }
+.oracle-msg.role-assistant { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.oracle-msg.role-assistant .ai-tag { align-self: flex-start; }
+.oracle-form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.oracle-form textarea { flex: 1; resize: none; font: 500 14px/1.3 var(--font-serif); color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.oracle-form button { align-self: stretch; }
+
 /* =====================================================================================
    Responsive: one place that makes every page work from a phone (375 px) to a projector.
    Rules above keep their look; these only stop things from forcing the page wider than the

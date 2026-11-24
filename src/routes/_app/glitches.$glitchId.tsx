@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Link, createFileRoute, notFound, useRouter } from '@tanstack/react-router'
-import { ArrowLeft, ArrowRight, LoaderCircle, ShieldCheck, Trash2, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, LoaderCircle, ScrollText, ShieldCheck, Sparkles, Split, Trash2, UserRound } from 'lucide-react'
 import { EchoForm } from '#/components/EchoForm.tsx'
 import { AetherBadge } from '#/components/AetherBadge.tsx'
 import { StabilizeGame } from '#/components/StabilizeGame.tsx'
 import { StatusStepper } from '#/components/StatusStepper.tsx'
 import { PixelAvatar } from '#/components/grid/PixelAvatar.tsx'
 import { PixelIcon } from '#/components/grid/PixelIcon.tsx'
+import { GlitchTypeBadge } from '#/components/GlitchTypeBadge.tsx'
+import { generateRunbook, splitEcho } from '#/lib/ai.functions.ts'
 import { playStabilized } from '#/dashboard/sound.ts'
 import { formatTimestamp } from '#/lib/format.ts'
 import {
@@ -21,7 +23,9 @@ import {
   GLITCH_STATUSES,
   STATUS_LABELS,
   nextStatus,
+  type AiNote,
   type Echo,
+  type RunbookStep,
   type GlitchDetail,
   type GlitchEvent,
   type GlitchStatus,
@@ -75,6 +79,7 @@ function GlitchPage() {
             <span className={`glitch-dot status-${glitch.status.toLowerCase()}`} />
             {STATUS_LABELS[glitch.status]}
           </span>
+          <GlitchTypeBadge type={glitch.glitchType} />
           <span className="who">
             {glitch.assignee ? (
               <>
@@ -144,14 +149,14 @@ function GlitchPage() {
         />
       )}
 
-      <div className={`glitch-columns ${isAssignee || isCommander(guardian) ? 'has-side' : ''}`}>
+      <div className="glitch-columns has-side">
         <section className="card glitch-story">
           <div className="card-title section-title">
             <PixelIcon name="rift" size={18} />
             Echoes &amp; history
           </div>
 
-          <Timeline glitch={glitch} />
+          <Timeline glitch={glitch} canSplit={isCommander(guardian)} />
 
           <div className="echo-box">
             <h3>{isAssignee ? 'Send an update on your glitch' : 'Add an echo to this glitch'}</h3>
@@ -163,8 +168,9 @@ function GlitchPage() {
           </div>
         </section>
 
-        {(isAssignee || isCommander(guardian)) && (
+        {(
           <aside className="glitch-side">
+            <RunbookCard glitch={glitch} />
             {isAssignee && <AssigneePanel glitch={glitch} />}
             {isCommander(guardian) && <CommanderPanel glitch={glitch} defenders={glitch.defenders} />}
           </aside>
@@ -176,12 +182,16 @@ function GlitchPage() {
 
 // ---------- timeline: echoes and history in time order ----------
 
-type TimelineItem = { kind: 'echo'; at: string; echo: Echo } | { kind: 'event'; at: string; event: GlitchEvent }
+type TimelineItem =
+  | { kind: 'echo'; at: string; echo: Echo }
+  | { kind: 'event'; at: string; event: GlitchEvent }
+  | { kind: 'ai'; at: string; note: AiNote }
 
-function Timeline({ glitch }: { glitch: GlitchDetail }) {
+function Timeline({ glitch, canSplit }: { glitch: GlitchDetail; canSplit: boolean }) {
   const items: TimelineItem[] = [
     ...glitch.echoes.map((echo) => ({ kind: 'echo' as const, at: echo.timestamp, echo })),
     ...glitch.events.map((event) => ({ kind: 'event' as const, at: event.timestamp, event })),
+    ...glitch.aiNotes.map((note) => ({ kind: 'ai' as const, at: note.timestamp, note })),
   ].sort((a, b) => a.at.localeCompare(b.at))
 
   if (items.length === 0) {
@@ -197,7 +207,10 @@ function Timeline({ glitch }: { glitch: GlitchDetail }) {
             echo={item.echo}
             // The echo that opened the glitch has the glitch's own timestamp.
             opened={item.echo.timestamp === glitch.timestamp}
+            canSplit={canSplit && item.echo.timestamp !== glitch.timestamp}
           />
+        ) : item.kind === 'ai' ? (
+          <AiNoteItem key={`ai-${item.note.noteId}`} note={item.note} />
         ) : (
           <EventItem key={`event-${item.event.eventId}`} event={item.event} />
         ),
@@ -206,7 +219,19 @@ function Timeline({ glitch }: { glitch: GlitchDetail }) {
   )
 }
 
-function EchoItem({ echo, opened }: { echo: Echo; opened: boolean }) {
+function EchoItem({ echo, opened, canSplit }: { echo: Echo; opened: boolean; canSplit: boolean }) {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const split = async () => {
+    if (!confirm('Move this echo out into a new glitch of its own?')) return
+    setBusy(true)
+    try {
+      const { glitchId } = await splitEcho({ data: echo.echoId })
+      await router.navigate({ to: '/glitches/$glitchId', params: { glitchId } })
+    } finally {
+      setBusy(false)
+    }
+  }
   return (
     <li className="relative">
       <span
@@ -222,7 +247,83 @@ function EchoItem({ echo, opened }: { echo: Echo; opened: boolean }) {
         </span>
       </div>
       <p className="mt-1 whitespace-pre-line text-fg">{echo.description}</p>
+      {canSplit && (
+        <button type="button" className="split-btn" onClick={split} disabled={busy} title="Commander: this echo is about something else, give it its own glitch">
+          <Split className="size-3.5" />
+          Split into new glitch
+        </button>
+      )}
     </li>
+  )
+}
+
+/** Something the AI (or its offline rules) did to this glitch. */
+function AiNoteItem({ note }: { note: AiNote }) {
+  return (
+    <li className="relative ai-note">
+      <span className="absolute top-1 -left-[31px] ai-note-dot">
+        <Sparkles className="size-3" />
+      </span>
+      <p className="text-sm">
+        <span className={`ai-tag source-${note.source}`}>{note.source === 'ai' ? 'AI' : 'Rules'}</span> {note.message} ·{' '}
+        <span className="text-muted">
+          <Time iso={note.timestamp} />
+        </span>
+      </p>
+    </li>
+  )
+}
+
+/** Step-by-step plan for this glitch, written by the AI on request (or a per-type template offline). */
+function RunbookCard({ glitch }: { glitch: GlitchDetail }) {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const steps: RunbookStep[] = glitch.runbook ? JSON.parse(glitch.runbook) : []
+
+  const write = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await generateRunbook({ data: glitch.glitchId })
+      await router.invalidate()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not write the runbook')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="card runbook">
+      <div className="card-title section-title">
+        <ScrollText className="size-4" />
+        Runbook
+        {glitch.runbookSource && (
+          <span className={`ai-tag source-${glitch.runbookSource}`}>{glitch.runbookSource === 'ai' ? 'AI' : 'Rules'}</span>
+        )}
+      </div>
+      {steps.length > 0 ? (
+        <ol className="runbook-steps">
+          {steps.map((step, i) => (
+            <li key={i}>
+              <span className="runbook-num">{i + 1}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <p>{step.detail}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="text-sm text-muted">No runbook yet. Let the AI write a step plan for this glitch.</p>
+      )}
+      <button type="button" className="runbook-btn" onClick={write} disabled={busy}>
+        {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+        {busy ? 'Writing…' : steps.length ? 'Rewrite runbook' : 'Write runbook'}
+      </button>
+      {error && <p className="text-sm text-red-400">{error}</p>}
+    </section>
   )
 }
 

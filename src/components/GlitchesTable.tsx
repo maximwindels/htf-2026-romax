@@ -2,6 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { ChevronRight, MessageSquare } from "lucide-react";
 import { PixelAvatar } from "#/components/grid/PixelAvatar.tsx";
 import { PixelIcon } from "#/components/grid/PixelIcon.tsx";
+import { GlitchTypeBadge } from "#/components/GlitchTypeBadge.tsx";
 import { STATUS_LABELS, type GlitchListItem } from "#/lib/glitch.ts";
 import { formatTimestamp } from "#/lib/format.ts";
 
@@ -78,7 +79,10 @@ export function GlitchesTable({
                     {STATUS_LABELS[glitch.status]}
                   </span>
                 </td>
-                <td className="glitch-desc">{glitch.description}</td>
+                <td className="glitch-desc">
+                  <GlitchTypeBadge type={glitch.glitchType} compact />
+                  {glitch.description}
+                </td>
                 <td>
                   {glitch.assignee ? (
                     <span className="who">

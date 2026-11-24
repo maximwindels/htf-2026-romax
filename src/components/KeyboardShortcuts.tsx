@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { visibleTabs } from '#/dashboard/tabs'
+import { toggleOracle } from '#/dashboard/Oracle'
 import { useRouter } from '@tanstack/react-router'
 import { X } from 'lucide-react'
 import type { GlitchDetail } from '#/lib/glitch.ts'
@@ -51,6 +52,7 @@ export function KeyboardShortcuts({ guardian }: { guardian: Guardian }) {
       if (e.key === '?') return run(openShortcutsHelp)
       if (key === 'g') return run(() => (chordUntil = Date.now() + CHORD_MS))
       if (key === 't') return run(toggleTheme)
+      if (key === 'o') return run(toggleOracle)
       if (key === 'p') return run(togglePresent)
       if (key === 'n') {
         // On the Glitches tab the dialog opens right there; everywhere else on the dashboard.
