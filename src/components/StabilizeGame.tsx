@@ -4,6 +4,7 @@ import { PulseLock } from '#/components/PulseLock.tsx'
 import { RuneSequence } from '#/components/RuneSequence.tsx'
 import { Stabilizer } from '#/components/Stabilizer.tsx'
 import { recordGameFail } from '#/lib/games.functions.ts'
+import { playFlawless, playTimerTick } from '#/dashboard/sound.ts'
 import { FLAWLESS_TUNE_MS, GAME_LIMIT_MS, type GameRunMeta } from '#/lib/games.ts'
 import { GAME_KINDS_ALL, gameFor, type GameKind, type StabilizeProof } from '#/lib/stabilize.ts'
 
@@ -53,6 +54,7 @@ export function StabilizeGame({ seed, hints, onStabilize, ...props }: StabilizeG
     const flawless = game === 'tune' ? durationMs <= FLAWLESS_TUNE_MS : misses.current === 0
     const run = { durationMs, flawless }
     await onStabilize(proof, run) // throws on a server refusal: the game shows the error
+    if (flawless) playFlawless()
     setOutcome({ kind: 'won', run })
   }
 
@@ -141,6 +143,8 @@ export function StabilizeGame({ seed, hints, onStabilize, ...props }: StabilizeG
 function GameTimer({ startedAt, onExpire }: { startedAt: React.RefObject<number>; onExpire: () => void }) {
   const [left, setLeft] = useState(GAME_LIMIT_MS)
   const expired = useRef(false)
+  /** Last whole second that ticked, so each of the final 5 seconds ticks once. */
+  const lastTick = useRef(0)
   const onExpireRef = useRef(onExpire)
   onExpireRef.current = onExpire
 
@@ -148,6 +152,11 @@ function GameTimer({ startedAt, onExpire }: { startedAt: React.RefObject<number>
     const id = setInterval(() => {
       const remaining = Math.max(0, GAME_LIMIT_MS - (performance.now() - startedAt.current))
       setLeft(remaining)
+      const second = Math.ceil(remaining / 1000)
+      if (second <= 5 && second > 0 && second !== lastTick.current) {
+        lastTick.current = second
+        playTimerTick(second <= 3)
+      }
       if (remaining === 0 && !expired.current) {
         expired.current = true
         onExpireRef.current()

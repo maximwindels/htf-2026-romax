@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Activity, LoaderCircle } from 'lucide-react'
-import { playStabilized } from '#/dashboard/sound.ts'
+import { playInTune, playStabilized } from '#/dashboard/sound.ts'
 import {
   FREQUENCY,
   HOLD_MS,
@@ -122,6 +122,7 @@ export function Stabilizer({
       if (tuned !== wasInTune) {
         wasInTune = tuned
         setInTune(tuned)
+        if (tuned) playInTune()
       }
 
       // Fill while in tune, drain twice as fast when the signal slips.
