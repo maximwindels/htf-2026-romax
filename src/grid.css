@@ -1346,8 +1346,6 @@ main { container: page / inline-size; }
   .side-tab-label, .side-tab-key,
   .side-nav:hover :is(.side-tab-label, .side-tab-key) { display: none; }
   .side-nav-user { margin: 0; padding: 0 0 0 6px; border-top: 0; border-left: 1px solid rgba(225, 231, 255, 0.12); }
-  /* the user menu opens upward, from the right edge */
-  .side-nav-user .user-menu-pop { left: auto; right: 0; bottom: calc(100% + 10px); margin: 0; }
   /* room for the bottom bar */
   main { padding-bottom: 84px !important; }
   .toasts { right: 16px; bottom: 74px; }
