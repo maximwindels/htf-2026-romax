@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { METRICS, type Metric } from '#/lib/grid.ts'
-import { numberParam } from '#/server/grid/http.ts'
+import { denyUnless, numberParam } from '#/server/grid/http.ts'
 import { series } from '#/server/grid/queries.ts'
 import { ensureGridRunning } from '#/server/grid/runtime.ts'
 
@@ -9,6 +9,8 @@ export const Route = createFileRoute('/api/series')({
   server: {
     handlers: {
       GET: ({ request }) => {
+        const denied = denyUnless()
+        if (denied) return denied
         ensureGridRunning()
         const query = new URL(request.url).searchParams
         const metric = query.get('metric') ?? 'load'

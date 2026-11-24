@@ -26,7 +26,7 @@ export function ReportEchoDialog({ open, onClose }: Props) {
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className="m-auto w-full max-w-lg rounded-3xl border border-line bg-white p-0 shadow-2xl backdrop:bg-sidebar/60 backdrop:backdrop-blur-sm"
+      className="m-auto w-full max-w-lg rounded-3xl border border-line bg-card p-0 shadow-2xl backdrop:bg-sidebar/60 backdrop:backdrop-blur-sm"
     >
       {open && (
         <div className="flex flex-col gap-5 p-7">

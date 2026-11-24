@@ -3,6 +3,7 @@ import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { METRIC_INFO, METRICS, type Metric } from '#/lib/grid.ts';
 import { api } from './api';
+import { useGuardian } from './useGuardian';
 import { AlertFeed } from '#/components/grid/AlertFeed';
 import { EarlyWarnings } from '#/components/grid/EarlyWarnings';
 import { MetricChart } from '#/components/grid/MetricChart';
@@ -26,13 +27,15 @@ function NodeChart({ metric, nodeId }: { metric: Metric; nodeId: string }) {
 }
 
 export function NodeDetailPage() {
-  const { nodeId } = useParams({ from: '/nodes/$nodeId' });
+  const { nodeId } = useParams({ from: '/_app/nodes/$nodeId' });
   const { data: nodes = [] } = useNodes();
   const { data: anomalies = [] } = useAnomalies();
   const { data: forecasts = [] } = useForecasts();
   const statuses = useNodeStatuses();
   const node = nodes.find((n) => n.id === nodeId);
   const [metric, setMetric] = useState<Metric>('temperature');
+  // Demo buttons: commander only (admin rights), the API checks this too.
+  const { canControlSimulator } = useGuardian();
   const glitch = useMutation({ mutationFn: () => api.glitch({ nodeId, metric }) });
   const ramp = useMutation({ mutationFn: () => api.ramp({ nodeId, metric }) });
 
@@ -50,6 +53,7 @@ export function NodeDetailPage() {
           </h1>
           <div className="muted">Region {node?.region}</div>
         </div>
+        {canControlSimulator && (
         <div className="actions">
           <select value={metric} onChange={(e) => setMetric(e.target.value as Metric)} aria-label="Metric to disturb">
             {METRICS.map((m) => (
@@ -65,6 +69,7 @@ export function NodeDetailPage() {
             Sudden glitch
           </button>
         </div>
+        )}
       </div>
       <section className="split">
         <div className="charts charts-2">

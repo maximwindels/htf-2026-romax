@@ -66,7 +66,7 @@ function GlitchPage() {
           {glitch.echoes.map((echo, i) => (
             <li key={echo.echoId} className="relative">
               <span
-                className={`absolute top-1.5 -left-[31px] size-3 rounded-full border-2 border-white ${i === 0 ? 'bg-red-500' : 'bg-accent'}`}
+                className={`absolute top-1.5 -left-[31px] size-3 rounded-full border-2 border-app ${i === 0 ? 'bg-red-500' : 'bg-accent'}`}
               />
               <div className="flex flex-wrap items-baseline gap-x-2 text-sm">
                 <span className="font-semibold text-fg">{echo.reporter}</span>
@@ -147,7 +147,7 @@ function CommanderPanel({ glitch }: { glitch: GlitchDetail }) {
               className={`h-9 rounded-lg px-3 text-sm transition-colors ${
                 active
                   ? 'bg-accent font-medium text-white'
-                  : 'border border-line bg-white text-fg hover:border-accent disabled:opacity-50'
+                  : 'border border-line bg-card text-fg hover:border-accent disabled:opacity-50'
               }`}
             >
               {STATUS_LABELS[status]}
@@ -160,7 +160,7 @@ function CommanderPanel({ glitch }: { glitch: GlitchDetail }) {
           type="button"
           onClick={remove}
           disabled={busy !== null}
-          className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+          className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-red-400 transition-colors hover:bg-red-500/15 disabled:opacity-50"
         >
           <Trash2 className="size-4" />
           Delete glitch
@@ -168,7 +168,7 @@ function CommanderPanel({ glitch }: { glitch: GlitchDetail }) {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-300">
           {error}
         </p>
       )}

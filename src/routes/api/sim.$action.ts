@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { readTarget } from '#/server/grid/http.ts'
+import { denyUnless, readTarget } from '#/server/grid/http.ts'
 import { ensureGridRunning } from '#/server/grid/runtime.ts'
 import { injectDesyncWave, injectGlitch, injectRamp } from '#/server/grid/simulator.ts'
 
@@ -13,6 +13,8 @@ export const Route = createFileRoute('/api/sim/$action')({
   server: {
     handlers: {
       POST: async ({ request, params }) => {
+        const denied = denyUnless('commander')
+        if (denied) return denied
         ensureGridRunning()
         const { nodeId, metric } = await readTarget(request)
         switch (params.action) {

@@ -88,13 +88,13 @@ function UserMenu({ guardian }: { guardian: Guardian }) {
         aria-expanded={open}
         title={guardian.codename}
         onClick={() => setOpen((o) => !o)}
-        className="flex size-10 items-center justify-center rounded-full border border-line bg-white text-sm font-semibold text-fg transition-colors hover:bg-subtle"
+        className="flex size-10 items-center justify-center rounded-full border border-line bg-card text-sm font-semibold text-fg transition-colors hover:bg-subtle"
       >
         {guardian.codename.slice(0, 1).toUpperCase()}
       </button>
 
       {open && (
-        <div className="absolute bottom-0 left-full z-20 ml-3 w-56 rounded-2xl border border-line bg-white p-2 shadow-xl shadow-black/10">
+        <div className="absolute bottom-0 left-full z-20 ml-3 w-56 rounded-2xl border border-line bg-card p-2 shadow-xl shadow-black/10">
           <div className="flex flex-col gap-2 px-3 py-2">
             <span className="text-xs text-muted">Logged in as</span>
             <span className="font-semibold text-fg">{guardian.codename}</span>

@@ -1,7 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import type { Glitch } from '#/lib/glitch.ts';
-import { getGlitches } from '#/lib/glitches.functions.ts';
 import { SEVERITY_RANK, type Anomaly, type Metric, type Severity } from '#/lib/grid.ts';
 import { api, qk } from './api';
 
@@ -16,10 +14,6 @@ export const useForecasts = () => useQuery({ queryKey: qk.forecasts, queryFn: ap
 export const useWarnings = () => useQuery({ queryKey: qk.warnings, queryFn: api.warnings, ...live });
 export const useSeries = (metric: Metric, nodeId?: string) =>
   useQuery({ queryKey: qk.series(metric, nodeId), queryFn: () => api.series(metric, nodeId), ...live });
-
-/** The glitch list (server function from the starter). The route loader gives the first data; SSE `glitch` events add new ones. */
-export const useGlitches = (initialData: Glitch[]) =>
-  useQuery({ queryKey: qk.glitches, queryFn: () => getGlitches(), initialData, ...live });
 
 export function useAck() {
   const qc = useQueryClient();

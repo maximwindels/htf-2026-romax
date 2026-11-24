@@ -41,5 +41,4 @@ export const qk = {
   stats: ['stats'] as const,
   forecasts: ['forecasts'] as const,
   warnings: ['warnings'] as const,
-  glitches: ['glitches'] as const,
 };

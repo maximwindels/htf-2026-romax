@@ -3,8 +3,8 @@
  * TanStack Query cache. Components keep using their normal queries and re-render when the cache changes.
  */
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useRouter } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import type { Glitch } from '#/lib/glitch.ts';
 import { METRICS, type Anomaly, type EarlyWarning, type Latest, type Metric, type SeriesPoint, type Tick } from '#/lib/grid.ts';
 import { notify, notifyWarning } from './alerts';
 import { SERIES_MINUTES, qk } from './api';
@@ -17,6 +17,7 @@ const MAX_WARNINGS = 100;
 
 export function useLiveStream(): LiveStatus {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [status, setStatus] = useState<LiveStatus>('connecting');
 
   useEffect(() => {
@@ -43,10 +44,11 @@ export function useLiveStream(): LiveStatus {
       notifyWarning(warning);
     });
     on<EarlyWarning>('warning-confirmed', (warning) => replace(queryClient, qk.warnings, warning));
-    on<Glitch>('glitch', (glitch) => prepend(queryClient, qk.glitches, glitch, 500));
+    // A glitch was opened automatically: reload the route loaders, so the glitch list shows it.
+    on('glitch', () => router.invalidate());
 
     return () => events.close();
-  }, [queryClient]);
+  }, [queryClient, router]);
 
   return status;
 }

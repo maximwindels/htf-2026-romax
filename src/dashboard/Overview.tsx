@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { METRICS, type Latest, type Metric, type Stats } from "#/lib/grid.ts";
 import { api } from "./api";
+import { useGuardian } from "./useGuardian";
 import { AlertFeed } from "#/components/grid/AlertFeed";
 import { EarlyWarnings } from "#/components/grid/EarlyWarnings";
 import { Kpi } from "#/components/grid/Kpi";
@@ -71,7 +72,8 @@ export function OverviewPage() {
   const { data: stats } = useStats();
   const statuses = useNodeStatuses();
 
-  // Demo buttons
+  // Demo buttons: commander only (admin rights), the API checks this too.
+  const { canControlSimulator } = useGuardian();
   const overheat = useMutation({
     mutationFn: () => api.ramp({ metric: "temperature" }),
   });
@@ -92,6 +94,7 @@ export function OverviewPage() {
           <span className="ribbon">Headquarters · vs. The Desync</span>
           <h1>Mission Control</h1>
         </div>
+        {canControlSimulator && (
         <div className="actions">
           <button
             onClick={() => overheat.mutate()}
@@ -106,6 +109,7 @@ export function OverviewPage() {
             Trigger Desync wave
           </button>
         </div>
+        )}
       </div>
 
       <section className="kpis">

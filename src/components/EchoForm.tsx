@@ -55,17 +55,17 @@ export function EchoForm({
           if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) e.currentTarget.form?.requestSubmit()
         }}
         placeholder={placeholder}
-        className="w-full resize-y rounded-xl border border-line bg-subtle px-3 py-2.5 text-fg outline-none transition-colors placeholder:text-muted focus:border-accent focus:bg-white"
+        className="w-full resize-y rounded-xl border border-line bg-subtle px-3 py-2.5 text-fg outline-none transition-colors placeholder:text-muted focus:border-accent "
       />
 
       {error && (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-300">
           {error}
         </p>
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <span className={`text-xs ${remaining < 50 ? 'text-red-600' : 'text-muted'}`}>
+        <span className={`text-xs ${remaining < 50 ? 'text-red-400' : 'text-muted'}`}>
           {remaining} characters left · Ctrl+Enter to send
         </span>
         <button

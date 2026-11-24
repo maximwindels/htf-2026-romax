@@ -20,9 +20,10 @@ const config = defineConfig({
   plugins: [
     devtools(),
     nitro({
-      // Run the dev SSR environment in a child process. The default worker-thread runner
-      // hung on start-up on Windows ("Vite environment "ssr" is unavailable").
-      devServer: { runner: 'node-process' },
+      // Dev only: run the SSR environment inside the Vite process. With a separate worker
+      // (the default) or child process, the ssr environment sometimes never got its
+      // start-up reply from Vite on Windows: "Vite environment "ssr" is unavailable".
+      devServer: { runner: 'self' },
       rollupConfig: {
         external: [/^@sentry\//],
         // Overrides nitro's own onwarn, so its default ignore list is repeated here.

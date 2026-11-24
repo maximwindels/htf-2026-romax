@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
-import { Activity, KeyRound, LoaderCircle, UserRound } from 'lucide-react'
+import { KeyRound, LoaderCircle, UserRound } from 'lucide-react'
+import { PixelCrystal } from '#/components/grid/PixelCrystal'
 import { getCurrentGuardian, login } from '#/lib/auth.functions.ts'
 
 type LoginSearch = { redirect?: string }
@@ -45,28 +46,18 @@ function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-sidebar px-4">
-      {/* Background glow */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 size-[640px] -translate-x-1/2 rounded-full bg-accent/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-48 -right-24 size-[420px] rounded-full bg-accent-from/20 blur-3xl" />
-
-      <div className="relative w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-accent-from to-accent-to text-white shadow-lg shadow-black/40">
-            <Activity className="size-8" strokeWidth={2} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-white">Guardians of the Grid</h1>
-            <p className="mt-1 text-sm text-white/60">Identify yourself to enter mission control</p>
-          </div>
+    // grid-ui: same "Curse of Achrona" theme as the dashboard (src/grid.css).
+    <div className="grid-ui flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <PixelCrystal size={64} />
+          <span className="ribbon">Guardians of the Grid</span>
+          <h1 className="justify-center">Achrona</h1>
+          <p className="muted">Identify yourself to enter mission control</p>
         </div>
 
         {/* method="post": a submit before hydration must never put the password in the URL. */}
-        <form
-          method="post"
-          onSubmit={onSubmit}
-          className="flex flex-col gap-5 rounded-3xl border border-white/10 bg-white p-8 shadow-2xl shadow-black/40"
-        >
+        <form method="post" onSubmit={onSubmit} className="card flex flex-col gap-5 p-7">
           <Field
             id="codename"
             label="Codename"
@@ -87,7 +78,7 @@ function LoginPage() {
           />
 
           {error && (
-            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-300">
               {error}
             </p>
           )}
@@ -95,10 +86,10 @@ function LoginPage() {
           <button
             type="submit"
             disabled={pending}
-            className="mt-1 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-br from-accent-from to-accent-to font-medium text-white shadow-md shadow-glow transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="mt-1 inline-flex items-center justify-center gap-2"
           >
             {pending && <LoaderCircle className="size-4 animate-spin" />}
-            {pending ? 'Verifying…' : 'Log in'}
+            {pending ? 'Verifying…' : 'Enter mission control'}
           </button>
         </form>
       </div>
@@ -120,8 +111,8 @@ type FieldProps = {
 function Field({ id, label, icon: Icon, value, onChange, type = 'text', ...rest }: FieldProps) {
   return (
     <label htmlFor={id} className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium text-fg">{label}</span>
-      <span className="flex h-11 items-center gap-2 rounded-xl border border-line bg-subtle px-3 transition-colors focus-within:border-accent focus-within:bg-white">
+      <span className="field-label">{label}</span>
+      <span className="flex h-11 items-center gap-2 rounded-[10px] border border-line bg-subtle px-3 transition-colors focus-within:border-accent">
         <Icon className="size-4 text-muted" strokeWidth={1.75} />
         <input
           id={id}
@@ -130,7 +121,7 @@ function Field({ id, label, icon: Icon, value, onChange, type = 'text', ...rest 
           required
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="min-w-0 flex-1 bg-transparent text-fg outline-none placeholder:text-muted"
+          className="min-w-0 flex-1 rounded-none border-0 bg-transparent p-0 text-fg outline-none placeholder:text-muted"
           {...rest}
         />
       </span>

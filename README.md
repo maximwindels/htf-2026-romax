@@ -105,6 +105,18 @@ npm run dev        # http://localhost:3000
 
 The simulator starts with the first request and writes one reading per node per metric every second.
 
+### Login and roles
+
+Every page except `/login` needs a logged-in guardian (Maxim's session login, `src/lib/auth.*.ts`). The `/api` routes check the same session.
+
+| | defender | commander |
+|---|---|---|
+| Mission control, anomalies, node pages, live stream | yes | yes |
+| Acknowledge an anomaly | yes | yes |
+| Report an echo (new glitch or update) | yes | yes |
+| Demo controls (overheating, glitch, Desync wave) | no (hidden, API returns 403) | yes |
+| Change glitch status, delete a glitch, Guardians page | no | yes |
+
 ### What it adds
 
 - **Overview (`/`):** live KPIs, the ley-line network map, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
