@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Activity, Timer, Trophy, Zap } from 'lucide-react'
+import { Trophy, Zap } from 'lucide-react'
 import { AetherBadge } from '#/components/AetherBadge.tsx'
+import { PixelAvatar } from '#/components/grid/PixelAvatar.tsx'
+import { PixelIcon } from '#/components/grid/PixelIcon.tsx'
 import { RoleBadge } from '#/components/RoleBadge.tsx'
 import { useLeaderboard } from '#/dashboard/games.ts'
 import { formatTimestamp } from '#/lib/format.ts'
@@ -26,7 +28,10 @@ function LeaderboardPage() {
       <div className="page-head">
         <div>
           <span className="ribbon">Hall of the Guardians</span>
-          <h1>Leaderboard</h1>
+          <h1>
+            <PixelIcon name="trophy" size={36} />
+            Leaderboard
+          </h1>
         </div>
         <p className="muted small leaderboard-rules">
           Win <b>+{POINTS.win}</b> · flawless <b>+{POINTS.flawless}</b> and an Aether Charge · time's up{' '}
@@ -38,13 +43,21 @@ function LeaderboardPage() {
 
       {podium.length > 0 && (
         <section className="podium">
-          {podium.map((row, i) => (
-            <PodiumCard key={row.guardianId} row={row} place={i + 1} isMe={row.guardianId === guardian.guardianId} />
-          ))}
+          {/* classic podium order: second, first, third */}
+          {[1, 0, 2].map((i) =>
+            podium[i] ? (
+              <PodiumCard key={podium[i].guardianId} row={podium[i]} place={i + 1} isMe={podium[i].guardianId === guardian.guardianId} />
+            ) : (
+              <div key={i} className="podium-slot" />
+            ),
+          )}
         </section>
       )}
 
-      <h2>All guardians</h2>
+      <h2 className="section-title">
+        <PixelIcon name="shield" size={27} />
+        All guardians
+      </h2>
       <div className="card table-wrap">
         <table>
           <thead>
@@ -65,6 +78,7 @@ function LeaderboardPage() {
                 <td className="mono">{i + 1}</td>
                 <td>
                   <span className="inline-flex items-center gap-2">
+                    <PixelAvatar codename={row.codename} role={row.role} size={24} />
                     <b>{row.codename}</b>
                     <AetherBadge charges={row.charges} />
                     {row.guardianId === guardian.guardianId && <span className="muted small">you</span>}
@@ -73,7 +87,14 @@ function LeaderboardPage() {
                 <td>
                   <RoleBadge role={row.role as GuardianRole} />
                 </td>
-                <td className="mono big">{row.points}</td>
+                <td>
+                  <span className="points-cell">
+                    <span className="mono big">{row.points}</span>
+                    <span className="points-bar" aria-hidden="true">
+                      <span style={{ width: `${Math.max(0, (row.points / Math.max(1, rows[0]?.points ?? 1)) * 100)}%` }} />
+                    </span>
+                  </span>
+                </td>
                 <td className="mono">{row.wins}</td>
                 <td className="mono">{row.flawless}</td>
                 <td className="mono">{row.fails}</td>
@@ -84,7 +105,10 @@ function LeaderboardPage() {
         </table>
       </div>
 
-      <h2>Latest runs</h2>
+      <h2 className="section-title">
+        <PixelIcon name="vitals" size={27} />
+        Latest runs
+      </h2>
       <div className="card">
         {data && data.recent.length === 0 && (
           <div className="muted empty">No runs yet. Stabilize a glitch or a critical alert to get on the board.</div>
@@ -92,7 +116,7 @@ function LeaderboardPage() {
         <ul className="runs">
           {data?.recent.map((run) => (
             <li key={run.runId} className={`run run-${run.result} ${run.flawless ? 'is-flawless' : ''}`}>
-              {run.game === 'pulse' ? <Timer className="size-4" /> : <Activity className="size-4" />}
+              <PixelIcon name={run.result === 'fail' ? 'skull' : run.flawless ? 'crystal' : run.game === 'pulse' ? 'latency' : 'vitals'} size={18} />
               <b>{run.codename}</b>
               <span className="muted">
                 {run.result === 'fail' ? 'ran out of time on' : run.flawless ? 'flawlessly stabilized' : 'stabilized'}{' '}
@@ -117,17 +141,23 @@ function LeaderboardPage() {
 
 function PodiumCard({ row, place, isMe }: { row: LeaderboardRow; place: number; isMe: boolean }) {
   return (
-    <div className={`card podium-card place-${place} ${isMe ? 'is-me' : ''}`}>
-      <div className="podium-place">
-        <Trophy className="size-5" />#{place}
+    <div className={`podium-spot place-${place} ${isMe ? 'is-me' : ''}`}>
+      <div className="podium-hero">
+        <PixelAvatar codename={row.codename} role={row.role} size={64} />
+        <div className="podium-name">
+          {row.codename}
+          <AetherBadge charges={row.charges} />
+        </div>
+        <div className="podium-points mono">{row.points}</div>
+        <div className="muted small">
+          {row.wins} wins · {row.flawless} flawless · best {seconds(row.bestMs)}
+        </div>
       </div>
-      <div className="podium-name">
-        {row.codename}
-        <AetherBadge charges={row.charges} />
-      </div>
-      <div className="podium-points mono">{row.points}</div>
-      <div className="muted small">
-        {row.wins} wins · {row.flawless} flawless · best {seconds(row.bestMs)}
+      {/* the pedestal: higher for first place, gold / silver / bronze */}
+      <div className="pedestal">
+        <span className="pedestal-place">
+          <Trophy className="size-4" />#{place}
+        </span>
       </div>
     </div>
   )

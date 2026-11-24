@@ -1,99 +1,115 @@
-import { useRouter } from '@tanstack/react-router'
-import { ChevronRight, MessageSquare, UserRound } from 'lucide-react'
-import { StatusBadge } from '#/components/StatusBadge.tsx'
-import type { GlitchListItem } from '#/lib/glitch.ts'
-import { formatTimestamp } from '#/lib/format.ts'
+import { useRouter } from "@tanstack/react-router";
+import { ChevronRight, MessageSquare } from "lucide-react";
+import { PixelAvatar } from "#/components/grid/PixelAvatar.tsx";
+import { PixelIcon } from "#/components/grid/PixelIcon.tsx";
+import { STATUS_LABELS, type GlitchListItem } from "#/lib/glitch.ts";
+import { formatTimestamp } from "#/lib/format.ts";
 
-const columns = ['ID', 'Status', 'Description', 'Assignee', 'Echoes', 'Timestamp', '']
+const columns = [
+  "ID",
+  "Status",
+  "Description",
+  "Assignee",
+  "Echoes",
+  "Reported",
+  "",
+];
 
 type GlitchesTableProps = {
-  glitches: GlitchListItem[]
+  glitches: GlitchListItem[];
   /** The logged-in guardian: their own assignments are marked "you". */
-  currentGuardianId?: string
+  currentGuardianId?: string;
   /** Shown when the list is empty. */
-  emptyMessage?: string
-}
+  emptyMessage?: string;
+};
 
+/** The glitch list in the app's theme (pixel status chips, guardian avatars). Rows open the glitch. */
 export function GlitchesTable({
   glitches,
   currentGuardianId,
-  emptyMessage = 'No glitches. Achrona is calm, for now.',
+  emptyMessage = "No glitches. Achrona is calm, for now.",
 }: GlitchesTableProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   if (glitches.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-line px-6 py-12 text-center text-muted">
-        {emptyMessage}
-      </p>
-    )
+      <div className="card empty-state">
+        <PixelIcon name="crystal" size={45} />
+        <p>{emptyMessage}</p>
+      </div>
+    );
   }
 
   return (
-    <section className="flex flex-col gap-6">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[820px] text-left">
-          <thead>
-            <tr className="border-b-2 border-line text-muted">
-              {columns.map((col, i) => (
-                <th key={i} className="px-5 py-4 font-normal">
-                  {col}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="text-fg">
-            {glitches.map((glitch) => {
-              const open = () =>
-                router.navigate({ to: '/glitches/$glitchId', params: { glitchId: glitch.glitchId } })
-              return (
-                <tr
-                  key={glitch.glitchId}
-                  data-glitch-row
-                  tabIndex={0}
-                  onClick={open}
-                  onKeyDown={(e) => e.key === 'Enter' && open()}
-                  className="cursor-pointer transition-colors hover:bg-subtle focus:bg-subtle focus:outline-none focus-visible:shadow-[inset_4px_0_0_var(--accent)]"
-                >
-                  <td className="px-5 py-4 whitespace-nowrap">{glitch.glitchId}</td>
-                  <td className="px-5 py-4">
-                    <StatusBadge status={glitch.status} />
-                  </td>
-                  <td className="px-5 py-4">{glitch.description}</td>
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    {glitch.assignee ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <UserRound className="size-4 text-muted" strokeWidth={1.75} />
-                        {glitch.assignee}
-                        {glitch.assigneeId === currentGuardianId && (
-                          <span className="rounded-full bg-sky-400/15 px-2 py-0.5 text-xs text-sky-300">you</span>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="text-muted">-</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-muted">
-                    <span className="inline-flex items-center gap-1.5">
-                      <MessageSquare className="size-4" strokeWidth={1.75} />
-                      {glitch.echoCount}
+    <div className="card table-wrap glitch-table">
+      <table>
+        <thead>
+          <tr>
+            {columns.map((col, i) => (
+              <th key={i}>{col}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {glitches.map((glitch) => {
+            const open = () =>
+              router.navigate({
+                to: "/glitches/$glitchId",
+                params: { glitchId: glitch.glitchId },
+              });
+            const isMine = glitch.assigneeId === currentGuardianId;
+            return (
+              <tr
+                key={glitch.glitchId}
+                data-glitch-row
+                tabIndex={0}
+                onClick={open}
+                onKeyDown={(e) => e.key === "Enter" && open()}
+                className={`glitch-row status-${glitch.status.toLowerCase()} ${isMine ? "is-mine" : ""}`}
+              >
+                <td className="mono glitch-id">{glitch.glitchId}</td>
+                <td>
+                  <span
+                    className={`status-chip status-${glitch.status.toLowerCase()}`}
+                  >
+                    <span
+                      className={`glitch-dot status-${glitch.status.toLowerCase()}`}
+                    />
+                    {STATUS_LABELS[glitch.status]}
+                  </span>
+                </td>
+                <td className="glitch-desc">{glitch.description}</td>
+                <td>
+                  {glitch.assignee ? (
+                    <span className="who">
+                      <PixelAvatar codename={glitch.assignee} size={22} />
+                      {glitch.assignee}
+                      {isMine && <span className="you-tag">you</span>}
                     </span>
-                  </td>
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    {/* Server and browser time zones can differ; the browser's wins. */}
-                    <time dateTime={glitch.timestamp} suppressHydrationWarning>
-                      {formatTimestamp(glitch.timestamp)}
-                    </time>
-                  </td>
-                  <td className="px-5 py-4 text-muted">
-                    <ChevronRight className="size-5" />
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  )
+                  ) : (
+                    <span className="muted">unassigned</span>
+                  )}
+                </td>
+                <td className="muted">
+                  <span className="inline-flex items-center gap-1.5">
+                    <MessageSquare className="size-4" strokeWidth={1.75} />
+                    {glitch.echoCount}
+                  </span>
+                </td>
+                <td className="muted small">
+                  {/* Server and browser time zones can differ; the browser's wins. */}
+                  <time dateTime={glitch.timestamp} suppressHydrationWarning>
+                    {formatTimestamp(glitch.timestamp)}
+                  </time>
+                </td>
+                <td className="muted">
+                  <ChevronRight className="size-5" />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
