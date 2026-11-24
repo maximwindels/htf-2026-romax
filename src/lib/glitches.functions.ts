@@ -4,7 +4,7 @@ import { db } from '#/db/index.ts'
 import { echoes, glitches, guardians } from '#/db/schema.ts'
 import { requireGuardian } from '#/lib/auth.server.ts'
 import { nextId } from '#/lib/ids.server.ts'
-import { isInTune, targetSignal } from '#/lib/stabilize.ts'
+import { describeProof, parseProof, verifyProof, type StabilizeProof } from '#/lib/stabilize.ts'
 import {
   GLITCH_STATUSES,
   MAX_DESCRIPTION_LENGTH,
@@ -120,16 +120,15 @@ export const reportEcho = createServerFn({ method: 'POST' })
  * (the mini-game). The server re-checks the values, so the API can't be used to skip it.
  */
 export const stabilizeGlitch = createServerFn({ method: 'POST' })
-  .validator((data: { glitchId: string; frequency: number; phase: number }) => ({
+  .validator((data: { glitchId: string; proof: StabilizeProof }) => ({
     glitchId: String(data?.glitchId),
-    frequency: Number(data?.frequency),
-    phase: Number(data?.phase),
+    proof: parseProof(data?.proof),
   }))
   .handler(async ({ data }) => {
     const guardian = requireGuardian()
-    const signal = { frequency: data.frequency, phase: data.phase }
-    if (!isInTune(signal, targetSignal(data.glitchId))) {
-      throw new Error('Signal not stable yet, keep tuning')
+    const proof = data.proof
+    if (!proof || !verifyProof(data.glitchId, proof)) {
+      throw new Error('Not stable yet, keep going')
     }
 
     db.transaction((tx) => {
@@ -143,7 +142,7 @@ export const stabilizeGlitch = createServerFn({ method: 'POST' })
         .values({
           echoId: nextId(tx, 'EC'),
           glitchId: data.glitchId,
-          description: `Stabilized the frequency at ${data.frequency.toFixed(2)} Hz, phase ${Math.round(data.phase)}°. Glitch fixed.`,
+          description: describeProof(proof),
           timestamp: new Date().toISOString(),
           reportingGuardianId: guardian.guardianId,
         })

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { anomalySeed, isInTune, targetSignal } from '#/lib/stabilize.ts'
+import { anomalySeed, parseProof, verifyProof } from '#/lib/stabilize.ts'
 import { denyUnless } from '#/server/grid/http.ts'
 import { acknowledgeIncident, getAnomaly } from '#/server/grid/queries.ts'
 
@@ -7,8 +7,8 @@ import { acknowledgeIncident, getAnomaly } from '#/server/grid/queries.ts'
  * POST /api/anomalies/:id/ack - every open dashboard gets an `ack` event.
  * Acknowledging clears the whole incident: every open alert of the same node + metric
  * (a glitch fires an alert every second it lasts).
- * Critical anomalies can't just be clicked away: the body must carry a signal
- * `{ frequency, phase }` tuned to this anomaly (the stabilizer mini-game).
+ * Critical anomalies can't just be clicked away: the body must carry proof of a won mini-game,
+ * `{ kind: 'tune', frequency, phase }` or `{ kind: 'pulse', offsetsMs }`.
  */
 export const Route = createFileRoute('/api/anomalies/$id/ack')({
   server: {
@@ -23,9 +23,9 @@ export const Route = createFileRoute('/api/anomalies/$id/ack')({
         if (existing.acknowledgedAt) return Response.json(existing)
 
         if (existing.severity === 'critical') {
-          const body = (await request.json().catch(() => ({}))) as { frequency?: unknown; phase?: unknown }
-          const signal = { frequency: Number(body.frequency), phase: Number(body.phase) }
-          if (!isInTune(signal, targetSignal(anomalySeed(id)))) {
+          // Proof of a won mini-game: a tuned signal or two pulse hits (see lib/stabilize.ts).
+          const proof = parseProof(await request.json().catch(() => null))
+          if (!verifyProof(anomalySeed(id), proof)) {
             return Response.json(
               { error: 'Critical anomalies must be stabilized, not just acknowledged' },
               { status: 409 },

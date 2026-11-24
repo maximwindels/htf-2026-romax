@@ -570,3 +570,82 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
 @media (prefers-reduced-motion: reduce) {
   .crack path { stroke-dashoffset: 0; }
 }
+
+/* ---------- mini-game 2: Chrono-Pulse Lock (PulseLock.tsx) ---------- */
+/* .grid-ui button.pulse-pad: must beat the theme's .grid-ui button styles (gradient, 3D edge, hover lift). */
+.grid-ui button.pulse-pad,
+.grid-ui button.pulse-pad:hover:not(:disabled),
+.grid-ui button.pulse-pad:active:not(:disabled) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  background: #0d0916; /* dark glass in both themes, like the oscilloscope */
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.grid-ui button.pulse-pad:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+.grid-ui button.pulse-pad:disabled { cursor: default; opacity: 1; }
+.pulse-pad svg { width: min(320px, 82%); height: auto; display: block; }
+/* ---- the dial ---- */
+.skill-face { fill: url(#skill-dial); stroke: rgba(225, 231, 255, 0.08); stroke-width: 1; }
+.skill-track { fill: none; stroke: rgba(225, 231, 255, 0.28); stroke-width: 3; }
+.skill-inner-ring { fill: none; stroke: rgba(225, 231, 255, 0.08); stroke-width: 1; stroke-dasharray: 2 5; }
+.skill-tick { stroke: rgba(225, 231, 255, 0.18); stroke-width: 1; }
+.skill-tick.is-hour { stroke: rgba(225, 231, 255, 0.45); stroke-width: 2; }
+.skill-numeral { font: 700 15px/1 var(--font-caps); letter-spacing: 0.06em; fill: rgba(230, 158, 65, 0.75); }
+
+/* ---- the zone: dark border, light band, solid great start, sharp cut lines ---- */
+.skill-zone-group { opacity: 0; transition: opacity 0.15s steps(2); }
+.skill-zone-border { fill: none; stroke: #05030a; stroke-width: 22; }
+.skill-zone { fill: none; stroke: #e1e7ff; stroke-width: 16; stroke-opacity: 0.3; }
+.skill-great { fill: none; stroke: #e292f4; stroke-width: 16; }
+.skill-zone-edges { fill: none; stroke: #e1e7ff; stroke-width: 2.5; }
+.skill-zone-group.is-near .skill-zone { stroke-opacity: 0.6; }
+.skill-zone-group.is-near .skill-zone-edges { stroke: #fff; }
+.is-tuned .skill-zone { stroke: #5b9bff; stroke-opacity: 0.85; }
+.is-done .skill-zone { stroke: #e292f4; stroke-opacity: 0.85; }
+
+/* ---- the hand ---- */
+.skill-trail { fill: none; stroke: #eb4c2d; stroke-width: 6; stroke-opacity: 0.22; stroke-linecap: butt; }
+.skill-needle polygon { fill: #eb4c2d; stroke: #05030a; stroke-width: 1.5; stroke-linejoin: round; }
+.skill-needle circle { fill: #eb4c2d; stroke: #05030a; stroke-width: 1.5; }
+.skill-hub { fill: #2b2042; stroke: #eb4c2d; stroke-width: 3; }
+.skill-hub-dot { fill: #e1e7ff; }
+
+/* ---- sparks on a hit (one short burst) ---- */
+.skill-burst line { stroke: #5b9bff; stroke-width: 3; stroke-linecap: square; transform-box: fill-box; transform-origin: center; animation: skill-burst 0.45s steps(5) forwards; }
+.skill-burst.is-great line { stroke: #e292f4; }
+@keyframes skill-burst { from { opacity: 1; } to { opacity: 0; transform: scale(1.4); } }
+
+/* ---- centre text ---- */
+.skill-combo { font: 700 40px/1 var(--font-label); fill: #e1e7ff; }
+.skill-combo-of { font-size: 20px; fill: rgba(225, 231, 255, 0.4); }
+.skill-center { font: 700 15px/1 var(--font-label); letter-spacing: 0.2em; fill: rgba(225, 231, 255, 0.45); }
+.skill-center.fb-great { fill: #e292f4; }
+.skill-center.fb-hit { fill: #5b9bff; }
+.skill-center.fb-miss { fill: #eb4c2d; }
+.is-done .skill-center, .is-done .skill-combo { fill: #e292f4; }
+.pulse-done { position: absolute; }
+.pulse-combo { display: flex; align-items: center; gap: 8px; }
+.pulse-combo-label { font: 700 15px/1 var(--font-caps); letter-spacing: 0.05em; color: var(--orange); }
+.pulse-pip { width: 22px; height: 12px; background: var(--bg); border: 1px solid var(--line); }
+.pulse-pip.is-on { background: var(--ok); border-color: var(--ok); }
+.is-done .pulse-pip.is-on { background: var(--pink); border-color: var(--pink); }
+/* a miss: one small shake of the panel only (switched off with reduced motion) */
+.pulse-lock.is-miss { border-top-color: var(--sev-critical); animation: pulse-miss 0.32s steps(6); }
+@keyframes pulse-miss {
+  0%, 100% { transform: none; }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}

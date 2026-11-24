@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, createFileRoute, notFound, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, LoaderCircle, ShieldCheck, Trash2 } from 'lucide-react'
 import { EchoForm } from '#/components/EchoForm.tsx'
-import { Stabilizer } from '#/components/Stabilizer.tsx'
+import { StabilizeGame } from '#/components/StabilizeGame.tsx'
 import { StatusBadge } from '#/components/StatusBadge.tsx'
 import { playStabilized } from '#/dashboard/sound.ts'
 import { formatTimestamp } from '#/lib/format.ts'
@@ -58,17 +58,25 @@ function GlitchPage() {
       </div>
 
       {glitch.status === 'CONTAINING' && (
-        <Stabilizer
+        <StabilizeGame
           seed={glitch.glitchId}
-          onStabilize={(signal) => stabilizeGlitch({ data: { glitchId: glitch.glitchId, ...signal } })}
+          onStabilize={(proof) => stabilizeGlitch({ data: { glitchId: glitch.glitchId, proof } })}
           onDone={() => router.invalidate()}
-          doneLabel="Signal stabilized · glitch fixed"
-          hint={
-            <>
-              Tune your signal onto the ghost wave and hold it steady for 2 seconds. Press{' '}
-              <kbd className="kbd">S</kbd> to grab the controls.
-            </>
-          }
+          doneLabel="Stabilized · glitch fixed"
+          hints={{
+            tune: (
+              <>
+                Tune your signal onto the ghost wave and hold it steady for 2 seconds. Press{' '}
+                <kbd className="kbd">S</kbd> to grab the controls.
+              </>
+            ),
+            pulse: (
+              <>
+                Press <kbd className="kbd">Space</kbd> or tap while the hand is inside the marked zone. Two hits in
+                a row lock the timeline. Press <kbd className="kbd">S</kbd> to grab the pad.
+              </>
+            ),
+          }}
         />
       )}
 

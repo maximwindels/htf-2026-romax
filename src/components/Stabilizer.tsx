@@ -11,6 +11,7 @@ import {
   signalError,
   targetSignal,
   type Signal,
+  type StabilizeProof,
 } from '#/lib/stabilize.ts'
 
 const W = 600
@@ -48,8 +49,8 @@ function wavePath(signal: Signal, scroll: number, wobble: number, time: number) 
 type StabilizerProps = {
   /** Picks the target signal: a glitch id, or anomalySeed(id) for a grid anomaly. */
   seed: string
-  /** Sends the tuned signal to the server, which re-checks it. Throw to show an error. */
-  onStabilize: (signal: Signal) => Promise<unknown>
+  /** Sends proof of the won game to the server, which re-checks it. Throw to show an error. */
+  onStabilize: (proof: StabilizeProof) => Promise<unknown>
   /** Runs a moment after success, once the success state has been seen. */
   onDone?: () => void
   doneLabel?: string
@@ -91,7 +92,7 @@ export function Stabilizer({
     setStage('sending')
     setError(null)
     try {
-      await onStabilize(signalRef.current)
+      await onStabilize({ kind: 'tune', ...signalRef.current })
       setStage('done')
       playStabilized()
       // Let the success state land before the caller moves on.

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { Stabilizer } from '#/components/Stabilizer';
+import { StabilizeGame } from '#/components/StabilizeGame';
 import { api } from '#/dashboard/api';
 import { useAck, useStoreAck } from '#/dashboard/hooks';
 import { METRIC_INFO, type Anomaly } from '#/lib/grid.ts';
@@ -57,17 +57,25 @@ function StabilizeDialog({ anomaly, onClose }: { anomaly: Anomaly; onClose: () =
         >
           <X className="size-4" /> Close
         </button>
-        <Stabilizer
+        <StabilizeGame
           seed={anomalySeed(anomaly.id)}
           autoFocus
-          hint={
-            <>
-              Critical Desync on <strong>{anomaly.nodeId}</strong> ({METRIC_INFO[anomaly.metric].label}). It can't
-              just be acknowledged: tune onto its signal and hold for 2 seconds.
-            </>
-          }
+          hints={{
+            tune: (
+              <>
+                Critical Desync on <strong>{anomaly.nodeId}</strong> ({METRIC_INFO[anomaly.metric].label}). It can't
+                just be acknowledged: tune onto its signal and hold for 2 seconds.
+              </>
+            ),
+            pulse: (
+              <>
+                Critical Desync on <strong>{anomaly.nodeId}</strong> ({METRIC_INFO[anomaly.metric].label}). Press{' '}
+                <kbd className="kbd">Space</kbd> or tap while the hand is in the zone, twice in a row.
+              </>
+            ),
+          }}
           doneLabel={`${anomaly.nodeId} stabilized`}
-          onStabilize={async (signal) => store(await api.ack(anomaly.id, signal))}
+          onStabilize={async (proof) => store(await api.ack(anomaly.id, proof))}
           onDone={onClose}
         />
       </div>
