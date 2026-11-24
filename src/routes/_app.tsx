@@ -33,7 +33,7 @@ function AppLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-[var(--screen-h)]">
         <Sidebar guardian={guardian} />
         <LiveArea />
       </div>

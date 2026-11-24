@@ -28,6 +28,8 @@
 }
 
 :root {
+  /* One screen tall. dvh follows the phone's address bar; presentation mode divides it by its zoom (bottom). */
+  --screen-h: 100dvh;
   /* Original starter palette (light), kept for reference:
      --app #ffffff, --sidebar #1b1340, --panel #ffffff, --card #ffffff, --card-strong #f5f4f2,
      --line #eae7e4, --fg #0c0c14, --muted #706d6b, --subtle #f5f4f2, --subtle-hover #eae7e4,
@@ -121,8 +123,8 @@ body {
 :root[data-present='on'] { --present-zoom: 1.2; zoom: var(--present-zoom); }
 @media (min-width: 1600px) { :root[data-present='on'] { --present-zoom: 1.35; } }
 @media (min-width: 2400px) { :root[data-present='on'] { --present-zoom: 1.6; } }
-/* the sidebar is one screen tall: undo the zoom on its height */
-:root[data-present='on'] .side-nav { height: calc(100vh / var(--present-zoom)); }
+/* "one screen tall" must not grow with the zoom: --screen-h (defined at the top) is divided by it */
+:root[data-present='on'] { --screen-h: calc(100dvh / var(--present-zoom)); }
 
 :root[data-present='on'] {
   --muted: #c9c7e0;
