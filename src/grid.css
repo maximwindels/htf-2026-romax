@@ -440,49 +440,33 @@ a { color: var(--pink); text-decoration: none; }
 @media (max-width: 900px) { .magic-label, .magic-bar { display: none; } }
 
 /* ---------- The Desync: UI corruption, driven by <html data-desync="0-3"> ----------
-   Hard colour offsets only (no blur), in line with the theme. Animations switch off with
-   prefers-reduced-motion (rule above), the static RGB split stays. Stabilizer and dialogs stay clean. */
-:root { --split-r: rgba(255, 40, 90, 0.75); --split-c: rgba(0, 229, 255, 0.75); }
+   Kept deliberately calm: static effects, nothing that shakes, slides or flickers fast, so the
+   dashboard stays readable. Hard colour offsets only (no blur), in line with the theme.
+   Stabilizer and dialogs stay clean. */
+:root { --split-r: rgba(255, 40, 90, 0.55); --split-c: rgba(0, 229, 255, 0.55); }
 
-/* level 1+: chromatic aberration on readouts and headings */
+/* level 1+: a faint RGB split on readouts and headings; a little wider at level 3 */
 html:is([data-desync='1'], [data-desync='2'], [data-desync='3'])
   :is(.kpi-value, .kpi-label, .card-title, .chart-head, .node-name, .feed-node, .grid-ui h2, main h1:not(.extrude)) {
   text-shadow: -1px 0 var(--split-r), 1px 0 var(--split-c);
 }
-html:is([data-desync='2'], [data-desync='3'])
-  :is(.kpi-value, .kpi-label, .card-title, .chart-head, .node-name, .feed-node, .grid-ui h2, main h1:not(.extrude)) {
-  animation: desync-split 2.6s steps(1) infinite;
-}
 html[data-desync='3']
   :is(.kpi-value, .kpi-label, .card-title, .chart-head, .node-name, .feed-node, .grid-ui h2, main h1:not(.extrude)) {
-  text-shadow: -3px 0 var(--split-r), 3px 0 var(--split-c);
-  animation-duration: 1.2s;
+  text-shadow: -2px 0 var(--split-r), 2px 0 var(--split-c);
 }
 /* extruded blackletter keeps its 3D edge, with the split on top */
 html:is([data-desync='1'], [data-desync='2'], [data-desync='3']) :is(.grid-ui h1, .extrude) {
-  text-shadow: -2px 0 var(--split-r), 2px 0 var(--split-c), 1px 1px 0 var(--blue), 2px 2px 0 var(--blue), 3px 3px 0 var(--blue), 4px 4px 0 var(--blue-dark);
+  text-shadow: -1px 0 var(--split-r), 1px 0 var(--split-c), 1px 1px 0 var(--blue), 2px 2px 0 var(--blue), 3px 3px 0 var(--blue), 4px 4px 0 var(--blue-dark);
 }
 
-/* level 2+: buttons tremble now and then (staggered, so they don't move together) */
-html:is([data-desync='2'], [data-desync='3']) .grid-ui button:not(.ghost):not(dialog *) {
-  animation: desync-shake 3.2s steps(1) infinite;
-}
-html:is([data-desync='2'], [data-desync='3']) .grid-ui button:nth-of-type(2n):not(dialog *) { animation-delay: -1.1s; }
-html:is([data-desync='2'], [data-desync='3']) .grid-ui button:nth-of-type(3n):not(dialog *) { animation-delay: -2.3s; }
-html[data-desync='3'] .grid-ui button:not(.ghost):not(dialog *) { animation-duration: 1.6s; }
-
-/* level 3: cards slip out of sync and scanlines roll over the screen */
-html[data-desync='3'] .card:nth-child(3n + 1):not(.stabilizer) { animation: desync-slip 2.2s steps(1) infinite; }
+/* level 3: very faint static scanlines */
 html[data-desync='3'] body::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 99;
-  background:
-    linear-gradient(transparent 0 46%, rgba(235, 76, 45, 0.08) 46% 54%, transparent 54%) 0 0 / 100% 220px,
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px);
-  animation: desync-scan 3s steps(30) infinite;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.04) 0 1px, transparent 1px 4px);
 }
 
 /* a value The Desync has eaten (Kpi.tsx) */
@@ -491,27 +475,6 @@ html[data-desync='3'] body::after {
   color: #ff8aa8;
   letter-spacing: 0.02em;
 }
-
-@keyframes desync-split {
-  0%, 100% { text-shadow: -1px 0 var(--split-r), 1px 0 var(--split-c); }
-  40% { text-shadow: -3px 0 var(--split-r), 2px 0 var(--split-c); }
-  42% { text-shadow: 2px 0 var(--split-r), -2px 0 var(--split-c); }
-  44% { text-shadow: -1px 0 var(--split-r), 1px 0 var(--split-c); }
-}
-@keyframes desync-shake {
-  0%, 100% { transform: none; }
-  60% { transform: translate(1px, -1px); }
-  62% { transform: translate(-1px, 1px); }
-  64% { transform: translate(1px, 0); }
-  66% { transform: none; }
-}
-@keyframes desync-slip {
-  0%, 100% { transform: none; }
-  70% { transform: translateX(3px) skewX(-1deg); }
-  73% { transform: translateX(-2px); }
-  76% { transform: none; }
-}
-@keyframes desync-scan { from { background-position: 0 -220px, 0 0; } to { background-position: 0 220px, 0 0; } }
 
 /* ---------- commander: error mode switch + clear-all (TroubleControls) ---------- */
 .trouble-controls { flex-basis: 100%; display: flex; justify-content: flex-end; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -534,7 +497,7 @@ html[data-desync='3'] body::after {
 .desync-level.level-0 { color: var(--ok); }
 .desync-level.level-1 { color: var(--sev-medium); }
 .desync-level.level-2 { color: var(--sev-high); }
-.desync-level.level-3 { color: #fff; background: var(--sev-critical); border-color: var(--sev-critical); animation: blink 0.9s steps(1) infinite; }
+.desync-level.level-3 { color: #fff; background: var(--sev-critical); border-color: var(--sev-critical); }
 .desync-banner {
   position: fixed;
   top: 62px;
@@ -565,3 +528,60 @@ html[data-desync='3'] body::after {
 }
 .btn-report:hover { color: #e1e7ff; transform: translateY(-1px); box-shadow: 0 4px 0 #00163f; }
 .btn-report:active { transform: translateY(2px); box-shadow: 0 1px 0 #00163f; }
+
+/* ---------- The Desync breaks the screen: damage by magic left ----------
+   <html data-magic>: whole (> 77 %) · cracked (<= 77 %) · shattered (<= 33 %) · broken (0 %)
+   --magic-loss (0..1) scales the red edges smoothly. Cracks live in .desync-cracks (DesyncEffects.tsx).
+   Calm on purpose: cracks draw in once and then stay still, only in the corners, half transparent,
+   so they never sit on top of the data. Nothing pulses, blinks or shakes. */
+.desync-cracks { position: fixed; inset: 0; pointer-events: none; z-index: 98; overflow: hidden; }
+.desync-vignette {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(190, 8, 38, 0.55) 100%);
+  transition: opacity 1.2s ease;
+}
+.crack { position: absolute; width: min(40vw, 480px); height: auto; opacity: 0; overflow: visible; transition: opacity 1s ease; }
+.crack-tl { top: 0; left: 0; }
+.crack-tr { top: 0; right: 0; transform: scaleX(-1); }
+.crack-br { bottom: 0; right: 0; transform: scale(-1, -1); }
+.crack-bl { bottom: 0; left: 0; transform: scaleY(-1); }
+.crack path {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1; /* hidden until the tier draws it in */
+}
+.crack .crack-edge { stroke: rgba(20, 0, 6, 0.75); stroke-width: 4; }
+.crack .crack-line { stroke: #ff2d48; stroke-width: 1.9; }
+.crack .crack-core { stroke: #ffd3d9; stroke-width: 0.8; }
+
+/* which corners crack: one at 77 %, three at 33 %, all four at 0 %; each draws in once, slowly */
+html:is([data-magic='cracked'], [data-magic='shattered'], [data-magic='broken']) .crack-tl,
+html:is([data-magic='shattered'], [data-magic='broken']) :is(.crack-br, .crack-tr),
+html[data-magic='broken'] .crack-bl { opacity: 0.7; }
+html[data-magic='broken'] .crack { opacity: 0.9; }
+html:is([data-magic='cracked'], [data-magic='shattered'], [data-magic='broken']) .crack-tl path,
+html:is([data-magic='shattered'], [data-magic='broken']) :is(.crack-br, .crack-tr) path,
+html[data-magic='broken'] .crack-bl path {
+  animation: crack-draw 2.4s ease-out forwards;
+}
+
+/* red at the very edges, stronger the less magic is left (up to about 80 %) */
+html:is([data-magic='cracked'], [data-magic='shattered'], [data-magic='broken']) .desync-vignette {
+  opacity: calc(var(--magic-loss, 0) * 0.8);
+}
+
+/* broken: colours fade a little (static, no movement) */
+html[data-magic='broken'] main { filter: saturate(0.65) contrast(1.05); }
+html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
+
+@keyframes crack-draw { to { stroke-dashoffset: 0; } }
+
+/* Reduced motion switches the draw-in animation off: show the cracks fully drawn instead. */
+@media (prefers-reduced-motion: reduce) {
+  .crack path { stroke-dashoffset: 0; }
+}
