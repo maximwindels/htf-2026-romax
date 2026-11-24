@@ -10,33 +10,192 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnomaliesRouteImport } from './routes/anomalies'
+import { Route as ApiAnomaliesRouteImport } from './routes/api/anomalies'
+import { Route as ApiForecastsRouteImport } from './routes/api/forecasts'
+import { Route as ApiLatestRouteImport } from './routes/api/latest'
+import { Route as ApiNodesRouteImport } from './routes/api/nodes'
+import { Route as ApiSeriesRouteImport } from './routes/api/series'
+import { Route as ApiStatsRouteImport } from './routes/api/stats'
+import { Route as ApiStreamRouteImport } from './routes/api/stream'
+import { Route as ApiWarningsRouteImport } from './routes/api/warnings'
+import { Route as NodesNodeIdRouteImport } from './routes/nodes.$nodeId'
+import { Route as ApiSimActionRouteImport } from './routes/api/sim.$action'
+import { Route as ApiAnomaliesIdAckRouteImport } from './routes/api/anomalies.$id.ack'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnomaliesRoute = AnomaliesRouteImport.update({
+  id: '/anomalies',
+  path: '/anomalies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAnomaliesRoute = ApiAnomaliesRouteImport.update({
+  id: '/api/anomalies',
+  path: '/api/anomalies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiForecastsRoute = ApiForecastsRouteImport.update({
+  id: '/api/forecasts',
+  path: '/api/forecasts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLatestRoute = ApiLatestRouteImport.update({
+  id: '/api/latest',
+  path: '/api/latest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNodesRoute = ApiNodesRouteImport.update({
+  id: '/api/nodes',
+  path: '/api/nodes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSeriesRoute = ApiSeriesRouteImport.update({
+  id: '/api/series',
+  path: '/api/series',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStatsRoute = ApiStatsRouteImport.update({
+  id: '/api/stats',
+  path: '/api/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStreamRoute = ApiStreamRouteImport.update({
+  id: '/api/stream',
+  path: '/api/stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWarningsRoute = ApiWarningsRouteImport.update({
+  id: '/api/warnings',
+  path: '/api/warnings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NodesNodeIdRoute = NodesNodeIdRouteImport.update({
+  id: '/nodes/$nodeId',
+  path: '/nodes/$nodeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSimActionRoute = ApiSimActionRouteImport.update({
+  id: '/api/sim/$action',
+  path: '/api/sim/$action',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAnomaliesIdAckRoute = ApiAnomaliesIdAckRouteImport.update({
+  id: '/$id/ack',
+  path: '/$id/ack',
+  getParentRoute: () => ApiAnomaliesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/anomalies': typeof AnomaliesRoute
+  '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
+  '/api/forecasts': typeof ApiForecastsRoute
+  '/api/latest': typeof ApiLatestRoute
+  '/api/nodes': typeof ApiNodesRoute
+  '/api/series': typeof ApiSeriesRoute
+  '/api/stats': typeof ApiStatsRoute
+  '/api/stream': typeof ApiStreamRoute
+  '/api/warnings': typeof ApiWarningsRoute
+  '/nodes/$nodeId': typeof NodesNodeIdRoute
+  '/api/sim/$action': typeof ApiSimActionRoute
+  '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/anomalies': typeof AnomaliesRoute
+  '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
+  '/api/forecasts': typeof ApiForecastsRoute
+  '/api/latest': typeof ApiLatestRoute
+  '/api/nodes': typeof ApiNodesRoute
+  '/api/series': typeof ApiSeriesRoute
+  '/api/stats': typeof ApiStatsRoute
+  '/api/stream': typeof ApiStreamRoute
+  '/api/warnings': typeof ApiWarningsRoute
+  '/nodes/$nodeId': typeof NodesNodeIdRoute
+  '/api/sim/$action': typeof ApiSimActionRoute
+  '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/anomalies': typeof AnomaliesRoute
+  '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
+  '/api/forecasts': typeof ApiForecastsRoute
+  '/api/latest': typeof ApiLatestRoute
+  '/api/nodes': typeof ApiNodesRoute
+  '/api/series': typeof ApiSeriesRoute
+  '/api/stats': typeof ApiStatsRoute
+  '/api/stream': typeof ApiStreamRoute
+  '/api/warnings': typeof ApiWarningsRoute
+  '/nodes/$nodeId': typeof NodesNodeIdRoute
+  '/api/sim/$action': typeof ApiSimActionRoute
+  '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/anomalies'
+    | '/api/anomalies'
+    | '/api/forecasts'
+    | '/api/latest'
+    | '/api/nodes'
+    | '/api/series'
+    | '/api/stats'
+    | '/api/stream'
+    | '/api/warnings'
+    | '/nodes/$nodeId'
+    | '/api/sim/$action'
+    | '/api/anomalies/$id/ack'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/anomalies'
+    | '/api/anomalies'
+    | '/api/forecasts'
+    | '/api/latest'
+    | '/api/nodes'
+    | '/api/series'
+    | '/api/stats'
+    | '/api/stream'
+    | '/api/warnings'
+    | '/nodes/$nodeId'
+    | '/api/sim/$action'
+    | '/api/anomalies/$id/ack'
+  id:
+    | '__root__'
+    | '/'
+    | '/anomalies'
+    | '/api/anomalies'
+    | '/api/forecasts'
+    | '/api/latest'
+    | '/api/nodes'
+    | '/api/series'
+    | '/api/stats'
+    | '/api/stream'
+    | '/api/warnings'
+    | '/nodes/$nodeId'
+    | '/api/sim/$action'
+    | '/api/anomalies/$id/ack'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnomaliesRoute: typeof AnomaliesRoute
+  ApiAnomaliesRoute: typeof ApiAnomaliesRouteWithChildren
+  ApiForecastsRoute: typeof ApiForecastsRoute
+  ApiLatestRoute: typeof ApiLatestRoute
+  ApiNodesRoute: typeof ApiNodesRoute
+  ApiSeriesRoute: typeof ApiSeriesRoute
+  ApiStatsRoute: typeof ApiStatsRoute
+  ApiStreamRoute: typeof ApiStreamRoute
+  ApiWarningsRoute: typeof ApiWarningsRoute
+  NodesNodeIdRoute: typeof NodesNodeIdRoute
+  ApiSimActionRoute: typeof ApiSimActionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +207,118 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/anomalies': {
+      id: '/anomalies'
+      path: '/anomalies'
+      fullPath: '/anomalies'
+      preLoaderRoute: typeof AnomaliesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/anomalies': {
+      id: '/api/anomalies'
+      path: '/api/anomalies'
+      fullPath: '/api/anomalies'
+      preLoaderRoute: typeof ApiAnomaliesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/forecasts': {
+      id: '/api/forecasts'
+      path: '/api/forecasts'
+      fullPath: '/api/forecasts'
+      preLoaderRoute: typeof ApiForecastsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/latest': {
+      id: '/api/latest'
+      path: '/api/latest'
+      fullPath: '/api/latest'
+      preLoaderRoute: typeof ApiLatestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/nodes': {
+      id: '/api/nodes'
+      path: '/api/nodes'
+      fullPath: '/api/nodes'
+      preLoaderRoute: typeof ApiNodesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/series': {
+      id: '/api/series'
+      path: '/api/series'
+      fullPath: '/api/series'
+      preLoaderRoute: typeof ApiSeriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stats': {
+      id: '/api/stats'
+      path: '/api/stats'
+      fullPath: '/api/stats'
+      preLoaderRoute: typeof ApiStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stream': {
+      id: '/api/stream'
+      path: '/api/stream'
+      fullPath: '/api/stream'
+      preLoaderRoute: typeof ApiStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/warnings': {
+      id: '/api/warnings'
+      path: '/api/warnings'
+      fullPath: '/api/warnings'
+      preLoaderRoute: typeof ApiWarningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nodes/$nodeId': {
+      id: '/nodes/$nodeId'
+      path: '/nodes/$nodeId'
+      fullPath: '/nodes/$nodeId'
+      preLoaderRoute: typeof NodesNodeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sim/$action': {
+      id: '/api/sim/$action'
+      path: '/api/sim/$action'
+      fullPath: '/api/sim/$action'
+      preLoaderRoute: typeof ApiSimActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/anomalies/$id/ack': {
+      id: '/api/anomalies/$id/ack'
+      path: '/$id/ack'
+      fullPath: '/api/anomalies/$id/ack'
+      preLoaderRoute: typeof ApiAnomaliesIdAckRouteImport
+      parentRoute: typeof ApiAnomaliesRoute
+    }
   }
 }
 
+interface ApiAnomaliesRouteChildren {
+  ApiAnomaliesIdAckRoute: typeof ApiAnomaliesIdAckRoute
+}
+
+const ApiAnomaliesRouteChildren: ApiAnomaliesRouteChildren = {
+  ApiAnomaliesIdAckRoute: ApiAnomaliesIdAckRoute,
+}
+
+const ApiAnomaliesRouteWithChildren = ApiAnomaliesRoute._addFileChildren(
+  ApiAnomaliesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnomaliesRoute: AnomaliesRoute,
+  ApiAnomaliesRoute: ApiAnomaliesRouteWithChildren,
+  ApiForecastsRoute: ApiForecastsRoute,
+  ApiLatestRoute: ApiLatestRoute,
+  ApiNodesRoute: ApiNodesRoute,
+  ApiSeriesRoute: ApiSeriesRoute,
+  ApiStatsRoute: ApiStatsRoute,
+  ApiStreamRoute: ApiStreamRoute,
+  ApiWarningsRoute: ApiWarningsRoute,
+  NodesNodeIdRoute: NodesNodeIdRoute,
+  ApiSimActionRoute: ApiSimActionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

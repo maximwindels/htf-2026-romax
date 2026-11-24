@@ -73,3 +73,73 @@ Guardians hebben een role.
 - **Verstuur notificaties:** Push-notificaties, e-mails of sms-berichten bij kritieke problemen (met instelbare voorkeuren per user).
 - **Leaderboard:** Een klassement met badges voor de defenders die de meeste incidenten fixen.
 
+
+---
+
+## Mission control (our additions)
+
+Everything above is the starter from the organisers and still works: the glitch list, Drizzle + SQLite, TanStack Start, Tailwind.
+On top of it we added a live mission control dashboard.
+
+### Run it
+
+Needs **Node 22.12 or newer** (TanStack Start requirement). With nvm: `nvm use 24.1.0`.
+
+```bash
+npm install
+npm run db:setup   # creates all tables (drizzle-kit push) and seeds the glitches
+npm run dev        # http://localhost:3000
+```
+
+The simulator starts with the first request and writes one reading per node per metric every second.
+
+### What it adds
+
+- **Overview (`/`):** live KPIs, the ley-line network map, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
+- **Anomalies (`/anomalies`):** anomaly log with sorting, search, filters, pages and acknowledge (TanStack Table).
+- **Node detail (`/nodes/$nodeId`):** the four charts of one node with forecast lines, plus demo buttons.
+- **Early warning:** a trend line per node and metric predicts when a hard limit will be crossed, before it happens. When the limit is really crossed, the warning is confirmed and its lead time is stored.
+- **Predictive glitches:** critical anomalies open a glitch (status `LEAKED`, marked `[auto]`) in the starter's glitch list. A Desync wave becomes one glitch. New glitches appear live.
+- **Live updates:** one Server-Sent Events stream (`/api/stream`) writes every event into the TanStack Query cache.
+- **Theme:** HTF 2026 "Curse of Achrona". The starter's Tailwind tokens in `src/styles.css` are mapped to the theme colours; dashboard styles are in `src/grid.css`.
+
+### Code map
+
+```
+src/db/schema.ts            glitches (starter) + nodes, readings, anomalies, early_warnings
+src/lib/grid.ts             grid types, metric labels/units, HARD_LIMITS
+src/server/grid/
+  runtime.ts                starts the simulator once per server process
+  simulator.ts              FAKE data source: swap generateReadings() for the real feed
+  ingest.ts                 pipeline per tick: forecast > broadcast > store > warn > detect > glitch > confirm
+  detector.ts               rolling z-score + hard limits
+  forecaster.ts             early warning: trend line + ETA to the limit
+  autoGlitch.ts             critical anomalies -> glitch in the glitch list
+  queries.ts                Drizzle queries behind the /api routes
+  stream.ts, bus.ts         SSE stream and in-process events
+src/routes/api/*            TanStack Start server routes (/api/...)
+src/routes/                 pages: index, anomalies, nodes.$nodeId
+src/dashboard/              API client, query hooks, live stream, alerts, page components
+src/components/grid/        one file per dashboard component
+```
+
+### API
+
+| Method | Path | |
+|---|---|---|
+| GET | `/api/nodes` | node list |
+| GET | `/api/latest` | latest value per node and metric |
+| GET | `/api/series?metric=load&minutes=5[&nodeId=]` | time series (avg, min, max per tick) |
+| GET | `/api/anomalies?limit=500[&status=open]` | anomaly log |
+| POST | `/api/anomalies/$id/ack` | acknowledge an anomaly |
+| GET | `/api/forecasts` | active forecasts with ETA |
+| GET | `/api/warnings?limit=100` | early-warning log with lead time |
+| GET | `/api/stats` | numbers for the KPI cards |
+| GET | `/api/stream` | SSE: `tick`, `anomaly`, `ack`, `warning`, `warning-confirmed`, `glitch`, `ping` |
+| POST | `/api/sim/glitch` `{nodeId?, metric?}` | demo: sudden glitch |
+| POST | `/api/sim/ramp` `{nodeId?, metric?}` | demo: slow build-up (the forecaster sees it coming) |
+| POST | `/api/sim/desync` | demo: Desync wave |
+
+### Dev note (Windows)
+
+`vite.config.ts` sets Nitro's dev runner to `node-process`. With the default worker-thread runner, the dev server answered every request with `Vite environment "ssr" is unavailable`.

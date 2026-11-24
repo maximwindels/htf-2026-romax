@@ -1,15 +1,16 @@
 import {Link} from '@tanstack/react-router'
-import {Activity, LayoutGrid, User, type LucideIcon} from 'lucide-react'
+import {Activity, LayoutGrid, TriangleAlert, User, type LucideIcon} from 'lucide-react'
 
 type NavItem = {
   label: string
   icon: LucideIcon
   /** Only set for pages that already have a route. */
-  to?: '/'
+  to?: '/' | '/anomalies'
 }
 
 const navItems: NavItem[] = [
   { label: 'Overview', icon: LayoutGrid, to: '/' },
+  { label: 'Anomalies', icon: TriangleAlert, to: '/anomalies' },
 ]
 
 // Icon-only items: the label lives in aria-label/title for screen readers and hover.

@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+/* Curse of Achrona theme fonts (HTF 2026 look-alikes), used by the mission control dashboard */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+SC:wght@500;700&family=JetBrains+Mono:wght@400;600&family=Pirata+One&display=swap");
 @import "tailwindcss";
+/* Mission control dashboard styles. In the components layer, so Tailwind utilities still win. */
+@import "./grid.css" layer(components);
 
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -21,21 +25,26 @@
 }
 
 :root {
-  --app: #ffffff;
-  --sidebar: #1b1340;
-  --panel: #ffffff;
-  --card: #ffffff;
-  --card-strong: #f5f4f2;
-  --line: #eae7e4;
-  --fg: #0c0c14;
-  --muted: #706d6b;
-  --subtle: #f5f4f2;
-  --subtle-hover: #eae7e4;
-  --accent: #6d4aff;
-  --accent-from: #a995ff;
-  --accent-to: #6d4aff;
-  --glow: rgb(109 74 255 / 0.2);
-  color-scheme: light;
+  /* Original starter palette (light), kept for reference:
+     --app #ffffff, --sidebar #1b1340, --panel #ffffff, --card #ffffff, --card-strong #f5f4f2,
+     --line #eae7e4, --fg #0c0c14, --muted #706d6b, --subtle #f5f4f2, --subtle-hover #eae7e4,
+     --accent #6d4aff, --accent-from #a995ff, --accent-to #6d4aff, --glow rgb(109 74 255 / 0.2)
+     Below: the same tokens mapped to the HTF 2026 "Curse of Achrona" theme (see grid.css). */
+  --app: #160f1f;
+  --sidebar: #0f0a17;
+  --panel: #1e1530;
+  --card: #241a38;
+  --card-strong: #2b2042;
+  --line: rgba(225, 231, 255, 0.12);
+  --fg: #e1e7ff;
+  --muted: #9d9bb8;
+  --subtle: #241a38;
+  --subtle-hover: #2b2042;
+  --accent: #e292f4;
+  --accent-from: #004fe2;
+  --accent-to: #01296a;
+  --glow: rgb(165 43 217 / 0.2);
+  color-scheme: dark;
 }
 
 html,
