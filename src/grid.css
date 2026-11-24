@@ -1459,3 +1459,74 @@ main { container: page / inline-size; }
   .oracle { right: 12px; bottom: 140px; height: min(560px, calc(var(--screen-h, 100vh) - 220px)); }
   .toasts { bottom: 140px; }
 }
+
+/* ---------- account in the sidebar: pixel avatar like the nav items, themed menu (Sidebar.tsx UserMenu) ---------- */
+.user-menu { position: relative; width: 100%; }
+.grid-ui button.user-chip {
+  /* reset the 3D button look: this one behaves like a sidebar item */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 7px;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  color: rgba(225, 231, 255, 0.75);
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  box-shadow: none;
+  white-space: nowrap;
+}
+.grid-ui button.user-chip:hover:not(:disabled),
+.grid-ui button.user-chip.is-open { color: #e1e7ff; background: rgba(225, 231, 255, 0.06); transform: none; box-shadow: none; }
+.grid-ui button.user-chip:active:not(:disabled) { transform: none; box-shadow: none; }
+.grid-ui button.user-chip:focus-visible { outline: 2px solid #e292f4; outline-offset: -2px; }
+/* the avatar in a pixel frame: gold for commanders, blue for defenders, with a hard offset edge */
+.user-chip-avatar { position: relative; display: inline-flex; flex-shrink: 0; padding: 2px; background: var(--frame, #3b6fd6); box-shadow: 2px 2px 0 #05030a; }
+.user-chip.role-commander, .user-pop.role-commander { --frame: #ffd36b; }
+.user-chip.role-defender, .user-pop.role-defender { --frame: #3b6fd6; }
+.user-chip-avatar .pixel-avatar { border: 0; display: block; }
+.user-chip-aether { position: absolute; top: -9px; right: -12px; }
+.user-chip-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.user-chip-name { font: 400 18px/1 var(--font-display); color: #e1e7ff; }
+.user-chip-role { font: 700 10px/1 var(--font-label); letter-spacing: 0.14em; text-transform: uppercase; color: var(--frame); }
+
+.user-pop {
+  position: absolute;
+  left: calc(100% + 14px);
+  bottom: 0;
+  z-index: 50;
+  width: 250px;
+  padding: 14px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--frame);
+  border-radius: var(--radius);
+  box-shadow: 0 5px 0 var(--blue-dark); /* hard edge, no glow */
+}
+.user-pop-head { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; margin-bottom: 10px; border-bottom: 1px solid transparent; border-image: var(--grad-divider) 1; }
+.user-pop-head .pixel-avatar { padding: 3px; background: var(--frame); border: 0; box-shadow: 3px 3px 0 #05030a; }
+.user-pop-head > div { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
+.user-pop-label { font: 700 11px/1 var(--font-label); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.user-pop-name { display: inline-flex; align-items: center; gap: 8px; font: 400 24px/1 var(--font-display); }
+.grid-ui button.user-pop-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: var(--grad-creatives);
+  color: var(--bg);
+  box-shadow: 0 4px 0 #7a2a17;
+}
+.grid-ui button.user-pop-logout:hover:not(:disabled) { box-shadow: 0 5px 0 #7a2a17; }
+.grid-ui button.user-pop-logout:active:not(:disabled) { box-shadow: 0 1px 0 #7a2a17; }
+@media (max-width: 640px) {
+  /* phones: the sidebar is a bottom bar, so the account menu opens upward from the right edge */
+  .user-menu { width: auto; }
+  .grid-ui button.user-chip { width: auto; padding: 6px; }
+  .user-pop { left: auto; right: 0; bottom: calc(100% + 12px); }
+}
