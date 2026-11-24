@@ -6,7 +6,7 @@ import {
   type FormEvent,
 } from "react";
 import { LoaderCircle, Send, X } from "lucide-react";
-import { PixelIcon } from "#/components/grid/PixelIcon";
+import { WizardMascot } from "#/components/grid/WizardMascot";
 import { askAssistant, getAiStatus } from "#/lib/ai.functions.ts";
 
 // Tiny store for "is the Oracle open", shared by the top-bar button, the O key and the panel.
@@ -46,6 +46,9 @@ export function OraclePanel() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
+  /** The wizard hops for a moment when an answer arrives. */
+  const [speaking, setSpeaking] = useState(false);
+  const mood = busy ? "thinking" : speaking ? "speaking" : "idle";
   const [status, setStatus] = useState<{
     enabled: boolean;
     model: string;
@@ -90,6 +93,8 @@ export function OraclePanel() {
       ]);
     } finally {
       setBusy(false);
+      setSpeaking(true);
+      setTimeout(() => setSpeaking(false), 600);
     }
   }
 
@@ -98,12 +103,25 @@ export function OraclePanel() {
     void ask(question);
   };
 
-  if (!isOpen) return null;
-
   return (
+    <>
+      {/* The wizard in the bottom-right corner opens and closes the Oracle (also the O key). */}
+      <button
+        type="button"
+        className={`oracle-fab ${isOpen ? "is-open" : ""}`}
+        onClick={toggleOracle}
+        aria-expanded={isOpen}
+        aria-label={isOpen ? "Close the Oracle" : "Ask the Oracle"}
+      >
+        <WizardMascot size={52} mood={mood} />
+        <span className="oracle-fab-label" aria-hidden>
+          {isOpen ? "Close" : "Ask the Oracle"} <kbd className="kbd">O</kbd>
+        </span>
+      </button>
+      {isOpen && (
     <aside className="oracle grid-ui" role="dialog" aria-label="Ask the Oracle">
       <header className="oracle-head">
-        <PixelIcon name="crystal" size={27} />
+        <WizardMascot size={40} mood={mood} />
         <div>
           <div className="oracle-title">The Oracle</div>
           <div className="oracle-sub">
@@ -127,10 +145,14 @@ export function OraclePanel() {
       <div className="oracle-list" ref={listRef}>
         {turns.length === 0 && (
           <div className="oracle-empty">
-            <p>
-              Ask about active incidents, alerts, nodes or forecasts. Every
-              answer uses the live grid.
-            </p>
+            <div className="oracle-welcome">
+              <WizardMascot size={88} mood={mood} />
+              <p className="oracle-bubble">
+                Greetings, guardian. Ask me about incidents, alerts, nodes or
+                what the forecasts foretell. I read the live grid for every
+                answer.
+              </p>
+            </div>
             <div className="oracle-starters">
               {STARTERS.map((s) => (
                 <button
@@ -145,24 +167,40 @@ export function OraclePanel() {
             </div>
           </div>
         )}
-        {turns.map((t, i) => (
-          <div key={i} className={`oracle-msg role-${t.role}`}>
-            {t.role === "assistant" && t.source && (
-              <span className={`ai-tag source-${t.source}`}>
-                {t.source === "ai"
-                  ? "AI"
-                  : t.source === "rules"
-                    ? "Rules"
-                    : "!"}
-              </span>
-            )}
-            <p>{t.text}</p>
-          </div>
-        ))}
+        {turns.map((t, i) => {
+          const message = (
+            <div className={`oracle-msg role-${t.role}`}>
+              {t.role === "assistant" && t.source && (
+                <span className={`ai-tag source-${t.source}`}>
+                  {t.source === "ai"
+                    ? "AI"
+                    : t.source === "rules"
+                      ? "Rules"
+                      : "!"}
+                </span>
+              )}
+              <p>{t.text}</p>
+            </div>
+          );
+          if (t.role === "user") return <div key={i} className="oracle-row role-user">{message}</div>;
+          // The wizard speaks the answers; the newest one hops when it arrives.
+          const latest = i === turns.length - 1;
+          return (
+            <div key={i} className="oracle-row role-assistant">
+              <WizardMascot size={28} mood={latest ? mood : "idle"} />
+              {message}
+            </div>
+          );
+        })}
         {busy && (
-          <div className="oracle-msg role-assistant">
-            <LoaderCircle className="size-4 animate-spin" /> Gazing into the
-            grid…
+          <div className="oracle-row role-assistant">
+            <WizardMascot size={28} mood="thinking" />
+            <div className="oracle-msg role-assistant">
+              <span className="inline-flex items-center gap-2">
+                <LoaderCircle className="size-4 animate-spin" /> Gazing into the
+                grid…
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -192,5 +230,7 @@ export function OraclePanel() {
         </button>
       </form>
     </aside>
+      )}
+    </>
   );
 }

@@ -1246,7 +1246,6 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
 .runbook-btn:disabled { opacity: 0.6; cursor: default; }
 
 /* the Oracle: chat panel on the right */
-.grid-ui button.oracle-btn { background: linear-gradient(var(--text), var(--text)) padding-box, var(--grad-magic) border-box; color: var(--purple); border: 2px solid transparent; }
 .oracle {
   position: fixed;
   right: 18px;
@@ -1294,7 +1293,14 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
 .node-grid, .roster { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
 .charts-2 { grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
 .stab-sliders { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
-.kpis { grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
+/* KPI cards (6 on the dashboard) always split into even rows: 6, 3 + 3, 2 + 2 + 2 or 1 per row.
+   Container queries measure the space the page really has, which also works under the
+   presentation-mode zoom (where the screen width overstates the room). */
+main { container: page / inline-size; }
+.kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@container page (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container page (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container page (max-width: 300px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
 .toolbar input:not([type]) { min-width: min(260px, 100%); }
 .toasts { width: min(330px, calc(100vw - 32px)); }
 
@@ -1354,4 +1360,102 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
   .podium { grid-template-columns: minmax(0, 1fr); }
   .page-head { margin-bottom: 14px; }
   .ribbon { font-size: 13px; padding: 7px 20px; }
+}
+
+/* ---------- the Oracle's wizard mascot (WizardMascot.tsx) ---------- */
+.wizard { display: block; overflow: visible; image-rendering: pixelated; flex-shrink: 0; }
+.wizard-body { animation: wizard-bob 2.4s steps(2) infinite; }
+.wizard-eyes { animation: wizard-blink 4.2s steps(1) infinite; }
+.wizard-sparks rect { opacity: 0; }
+/* thinking: the orb pulses and sparks fly off it */
+.wizard.mood-thinking .wizard-orb { animation: wizard-orb 0.6s steps(2) infinite; }
+.wizard.mood-thinking .wizard-sparks rect { animation: wizard-spark 0.72s steps(3) infinite; }
+.wizard.mood-thinking .wizard-body { animation-duration: 1.2s; }
+/* speaking: one little hop when an answer arrives */
+.wizard.mood-speaking .wizard-body { animation: wizard-hop 0.5s steps(3) 1; }
+
+@keyframes wizard-bob { 50% { transform: translateY(-0.5px); } }
+@keyframes wizard-blink { 0%, 94% { opacity: 1; } 95%, 100% { opacity: 0; } }
+@keyframes wizard-orb { 50% { filter: brightness(1.6); } }
+@keyframes wizard-spark { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-2px); } }
+@keyframes wizard-hop { 0%, 100% { transform: none; } 40% { transform: translateY(-2px); } }
+
+/* the Oracle panel with its wizard */
+.oracle-head .wizard { margin: -4px 0; }
+.oracle-welcome { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 12px; }
+.oracle-bubble {
+  position: relative;
+  flex: 1;
+  padding: 10px 12px;
+  font: italic 15px/1.4 var(--font-serif);
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px 12px 12px 2px;
+}
+.oracle-row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+.oracle-row .oracle-msg { max-width: calc(100% - 36px); }
+/* The Oracle is read closely: keep it above the Desync's screen cracks (z 98). */
+.oracle { z-index: 101; }
+
+/* ---------- the Oracle's wizard button, bottom-right (Oracle.tsx) ---------- */
+.oracle-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 102;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  /* a dark crystal-ball tile in a magic-gradient frame, with the theme's hard 3D edge */
+  border: 3px solid transparent;
+  border-radius: 18px;
+  background: radial-gradient(circle at 50% 38%, #2c1f4c, #0d0916 72%) padding-box, var(--grad-magic) border-box;
+  box-shadow: 0 5px 0 var(--indigo);
+  transition: transform 0.08s steps(2), box-shadow 0.08s steps(2);
+}
+.oracle-fab:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--indigo); }
+.oracle-fab:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--indigo); }
+.oracle-fab:focus-visible { outline: 2px solid var(--pink); outline-offset: 4px; }
+.oracle-fab:hover .wizard-body { animation: wizard-hop 0.5s steps(3) 1; }
+.oracle-fab.is-open { background: radial-gradient(circle at 50% 38%, #3b2766, #160f2a 72%) padding-box, var(--grad-hackers) border-box; }
+/* "Ask the Oracle (O)" bubble to the left of the button, on hover or keyboard focus */
+.oracle-fab-label {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 7px 10px;
+  font: 700 14px/1 var(--font-caps);
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 3px 0 var(--line);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.oracle-fab:hover .oracle-fab-label,
+.oracle-fab:focus-visible .oracle-fab-label { opacity: 1; }
+/* the panel opens just above the button; toasts move up so they don't cover it */
+.oracle { bottom: 106px; height: min(600px, calc(100vh - 140px)); }
+.toasts { bottom: 108px; }
+
+@media (max-width: 640px) {
+  /* above the bottom navigation bar */
+  .oracle-fab { right: 12px; bottom: 70px; width: 60px; height: 60px; border-radius: 15px; }
+  .oracle-fab .wizard { width: 44px; height: 44px; }
+  .oracle-fab-label { display: none; }
+  .oracle { right: 12px; bottom: 140px; height: min(560px, calc(100vh - 220px)); }
+  .toasts { bottom: 140px; }
 }
