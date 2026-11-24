@@ -5,6 +5,7 @@ import { AetherBadge } from '#/components/AetherBadge.tsx'
 import { PixelCrystal } from '#/components/grid/PixelCrystal'
 import { PixelIcon } from '#/components/grid/PixelIcon'
 import { RoleBadge } from '#/components/RoleBadge.tsx'
+import { PixelAvatar } from '#/components/grid/PixelAvatar.tsx'
 import { visibleTabs } from '#/dashboard/tabs'
 import { logout } from '#/lib/auth.functions.ts'
 import { isCommander, type Guardian } from '#/lib/guardian.ts'
@@ -79,42 +80,45 @@ function UserMenu({ guardian }: { guardian: Guardian }) {
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="user-menu">
+      {/* Same shape as the sidebar items: the avatar sits where their icons sit, the name shows when the rail opens. */}
       <button
         type="button"
         aria-label="User menu"
         aria-expanded={open}
         title={guardian.codename}
         onClick={() => setOpen((o) => !o)}
-        className="relative flex size-10 items-center justify-center rounded-full border border-line bg-card text-sm font-semibold text-fg transition-colors hover:bg-subtle"
+        className={`user-chip role-${guardian.role} ${open ? 'is-open' : ''}`}
       >
-        {guardian.codename.slice(0, 1).toUpperCase()}
-        {/* Aether Charges, pinned to the avatar */}
-        <span className="absolute -top-2 -right-3">
-          <AetherBadge guardianId={guardian.guardianId} />
+        <span className="user-chip-avatar">
+          <PixelAvatar codename={guardian.codename} role={guardian.role} size={26} />
+          {/* Aether Charges, pinned to the avatar */}
+          <span className="user-chip-aether">
+            <AetherBadge guardianId={guardian.guardianId} />
+          </span>
+        </span>
+        <span className="side-tab-label user-chip-text">
+          <span className="user-chip-name">{guardian.codename}</span>
+          <span className="user-chip-role">{guardian.role}</span>
         </span>
       </button>
 
       {open && (
-        <div className="user-menu-pop absolute bottom-0 left-full z-20 ml-3 w-56 rounded-2xl border border-line bg-card p-2 shadow-xl shadow-black/10">
-          <div className="flex flex-col gap-2 px-3 py-2">
-            <span className="text-xs text-muted">Logged in as</span>
-            <span className="inline-flex items-center gap-2 font-semibold text-fg">
-              {guardian.codename}
-              <AetherBadge guardianId={guardian.guardianId} />
-            </span>
-            <span>
+        <div className={`user-pop role-${guardian.role}`} role="menu">
+          <div className="user-pop-head">
+            <PixelAvatar codename={guardian.codename} role={guardian.role} size={56} />
+            <div>
+              <span className="user-pop-label">Logged in as</span>
+              <span className="user-pop-name">
+                {guardian.codename}
+                <AetherBadge guardianId={guardian.guardianId} />
+              </span>
               <RoleBadge role={guardian.role} />
-            </span>
+            </div>
           </div>
-          <div className="my-1 h-px bg-line" />
-          <button
-            type="button"
-            onClick={onLogout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-fg transition-colors hover:bg-subtle"
-          >
-            <LogOut className="size-4" strokeWidth={1.75} />
-            Log out
+          <button type="button" role="menuitem" onClick={onLogout} className="user-pop-logout">
+            <LogOut className="size-4" strokeWidth={2} />
+            Leave the watch
           </button>
         </div>
       )}
