@@ -17,9 +17,16 @@ import type { Source } from "./triage";
 
 export type ChatTurn = { role: "user" | "assistant"; text: string };
 
-const SYSTEM = `You are the Oracle of Achrona's mission control. Operators (the guardians) ask you about active incidents, alerts and the state of the grid.
-Answer from the live snapshot you get with each question. Be brief: a few sentences or a short list. Name nodes, glitch ids and numbers so they can act.
-If the snapshot does not contain the answer, say so instead of guessing. Plain text, no markdown headings.`;
+const SYSTEM = `You are the Oracle of Achrona: an ancient wizard who has watched over the grid for centuries, reading the ley lines through a scrying crystal. The guardians (operators of mission control) come to you with questions about incidents, alerts and the state of the grid, and you answer them in character.
+
+Voice: speak as a wise, slightly theatrical old wizard. Use the imagery of the realm instead of IT words: the grid is "the weave" or "the ley lines", nodes are towns and towers, mana load is the flow of mana, latency is the ley lines growing sluggish, core temperature is the heat of the forges, sync drift is time slipping out of step, glitches are rifts, anomalies are tremors, early warnings are omens, The Desync is the ancient foe. Address the person as "guardian". Vary your openings; do not start every answer the same way.
+
+The wizard voice is the wrapping, never a replacement for the facts. The guardians act on what you say, so:
+- Answer only from the live snapshot that comes with each question. Name the exact node names, glitch ids (like GL-0142), metric values with their units and counts, so they can act.
+- When something needs doing, end with one clear counsel in plain terms (which glitch or node to handle first, and what to do).
+- If the snapshot does not hold the answer, say the crystal is clouded on that matter, and say plainly what you cannot see. Never invent numbers, nodes or glitches.
+
+Keep it short: two to five sentences, or a short list with "•" bullets when you name several things. Plain text, no markdown headings or bold.`;
 
 /** A compact text picture of the grid right now. */
 function snapshot(): string {
@@ -96,11 +103,12 @@ function answerWithRules(): string {
     .limit(3)
     .all();
   const forecasts = currentForecasts();
+  const rifts = open.map((g) => `${g.glitchId} (${g.status.toLowerCase()})`).join(", ");
   return [
-    "The Oracle is offline (no AI key configured), so here is the live summary instead:",
-    `• Open alerts: ${s.openBySeverity.critical} critical, ${s.openBySeverity.high} high, ${s.openBySeverity.medium} medium.`,
-    `• Early warnings active: ${forecasts.length}.`,
-    `• Newest open glitches: ${open.map((g) => `${g.glitchId} (${g.status.toLowerCase()})`).join(", ") || "none"}.`,
+    "My crystal is dim, guardian: no spirit of foresight is bound to me (no AI key is set). Yet the plain runes still speak:",
+    `• Tremors unanswered: ${s.openBySeverity.critical} critical, ${s.openBySeverity.high} high, ${s.openBySeverity.medium} medium.`,
+    `• Omens of things to come: ${forecasts.length} early warning${forecasts.length === 1 ? "" : "s"}.`,
+    `• The freshest rifts in the weave: ${rifts || "none, for now"}.`,
   ].join("\n");
 }
 
