@@ -128,12 +128,13 @@ function tone(audio: AudioContext, out: Bus, o: ToneOptions) {
 
 /** A struck bell: the fundamental plus inharmonic partials that die away faster. */
 function bell(audio: AudioContext, out: Bus, freq: number, at: number, dur: number, peak: number, space = 0.35) {
+  // Dark, heavy bells: the bright upper partials are kept low and short.
   const partials: [number, number, number][] = [
     // [ratio, relative gain, relative length]
     [1, 1, 1],
-    [2.01, 0.4, 0.6],
-    [2.76, 0.25, 0.35],
-    [5.4, 0.1, 0.18],
+    [2.01, 0.3, 0.6],
+    [2.76, 0.18, 0.3],
+    [5.4, 0.04, 0.12],
   ];
   for (const [ratio, gain, length] of partials) {
     tone(audio, out, { freq: freq * ratio, at, dur: dur * length, peak: peak * gain, attack: 0.003, space });
@@ -274,52 +275,56 @@ export function playAlert(kind: 'critical' | 'high' | 'warning') {
   if (!r) return;
   const { audio, out } = r;
   if (kind === 'critical') {
-    for (const at of [0, 0.32]) {
-      tone(audio, out, { freq: 880, glideTo: 660, at, dur: 0.26, peak: 0.07, type: 'sawtooth', lowpass: 2400, space: 0.2 });
-      tone(audio, out, { freq: 440, glideTo: 330, at, dur: 0.26, peak: 0.05, type: 'square', lowpass: 1200, space: 0.2 });
+    // A low falling alarm, twice, with a tritone in it.
+    for (const at of [0, 0.36]) {
+      tone(audio, out, { freq: 622, glideTo: 466, at, dur: 0.3, peak: 0.06, type: 'sawtooth', lowpass: 1600, space: 0.3 });
+      tone(audio, out, { freq: 311, glideTo: 220, at, dur: 0.3, peak: 0.05, type: 'square', lowpass: 800, space: 0.3 });
     }
   } else if (kind === 'high') {
-    tone(audio, out, { freq: 660, glideTo: 523, dur: 0.35, peak: 0.07, type: 'triangle', space: 0.25 });
+    tone(audio, out, { freq: 440, glideTo: 392, dur: 0.4, peak: 0.06, type: 'triangle', lowpass: 1400, space: 0.35 });
   } else {
-    bell(audio, out, 523.25, 0, 0.9, 0.06);
-    bell(audio, out, 783.99, 0.12, 0.9, 0.045);
+    // Two bells a half step apart: unsettling rather than friendly.
+    bell(audio, out, 329.63, 0, 1.1, 0.06, 0.45);
+    bell(audio, out, 349.23, 0.14, 1.1, 0.045, 0.45);
   }
 }
 
-/** Sound switched on: a quick friendly blip up. */
+/** Sound switched on: a low hollow tone rising a minor third. */
 export function playToggleOn() {
   const r = ready();
   if (!r) return;
-  tone(r.audio, r.out, { freq: 660, dur: 0.12, peak: 0.07, type: 'triangle', space: 0.2 });
-  tone(r.audio, r.out, { freq: 990, at: 0.08, dur: 0.22, peak: 0.07, type: 'triangle', space: 0.3 });
+  tone(r.audio, r.out, { freq: 220, glideTo: 261.63, dur: 0.45, peak: 0.08, type: 'sine', space: 0.45 });
+  tone(r.audio, r.out, { freq: 110, dur: 0.5, peak: 0.05, type: 'triangle', lowpass: 600, space: 0.3 });
 }
 
 // ---------- stabilize ----------
 
-/** "It's fixed": a bell arpeggio up a C-major chord over a soft pad. */
+/**
+ * "Sealed": low bells up a D-minor chord over a deep drone. Relief, but in a dark world,
+ * not a prize jingle.
+ */
 export function playStabilized() {
   const r = ready();
   if (!r) return;
   const { audio, out } = r;
-  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => bell(audio, out, f, i * 0.085, 1.4, 0.07));
-  for (const f of [261.63, 329.63, 392]) {
-    tone(audio, out, { freq: f, dur: 1.6, peak: 0.025, attack: 0.08, type: 'sine', space: 0.6 });
-  }
+  [146.83, 220, 293.66, 349.23].forEach((f, i) => bell(audio, out, f, i * 0.12, 2.2, 0.09, 0.55));
+  tone(audio, out, { freq: 73.42, dur: 2.6, peak: 0.07, attack: 0.25, type: 'sine', space: 0.5 });
+  tone(audio, out, { freq: 110, dur: 2.4, peak: 0.03, attack: 0.4, type: 'triangle', lowpass: 500, space: 0.7 });
 }
 
-/** Extra on a flawless win, on top of playStabilized: a quick high sparkle run. */
+/** Extra on a flawless win, on top of playStabilized: a faint, eerie A-minor shimmer high up. */
 export function playFlawless() {
   const r = ready();
   if (!r) return;
   const { audio, out } = r;
-  [1318.5, 1568, 2093, 2637].forEach((f, i) => bell(audio, out, f, 0.38 + i * 0.06, 0.8, 0.035, 0.5));
+  [880, 1046.5, 1318.5].forEach((f, i) => bell(audio, out, f, 0.5 + i * 0.09, 1.6, 0.025, 0.75));
 }
 
-/** The frequency game locks on: a soft rising glide. */
+/** The frequency game locks on: a low, soft glide up a fourth. */
 export function playInTune() {
   const r = ready();
   if (!r) return;
-  tone(r.audio, r.out, { freq: 600, glideTo: 900, dur: 0.28, peak: 0.05, type: 'sine', space: 0.3 });
+  tone(r.audio, r.out, { freq: 293.66, glideTo: 392, dur: 0.4, peak: 0.05, type: 'sine', space: 0.45 });
 }
 
 // ---------- the Desync ----------
@@ -349,22 +354,26 @@ export function playLevelShift(worse: boolean) {
     tone(audio, out, { freq: 82.4, glideTo: 73.4, dur: 1.4, peak: 0.05, attack: 0.35, type: 'sawtooth', lowpass: 500, space: 0.6 });
     noise(audio, out, { dur: 1.2, peak: 0.03, filter: 'bandpass', from: 300, to: 1200, space: 0.6 });
   } else {
-    [392, 493.88, 587.33].forEach((f, i) =>
-      tone(audio, out, { freq: f, at: i * 0.07, dur: 1.1, peak: 0.035, attack: 0.05, type: 'triangle', space: 0.5 }),
+    // Receding: a soft A-minor chord, relief without cheer.
+    [220, 261.63, 329.63].forEach((f, i) =>
+      tone(audio, out, { freq: f, at: i * 0.09, dur: 1.4, peak: 0.035, attack: 0.12, type: 'triangle', lowpass: 1200, space: 0.6 }),
     );
   }
 }
 
 // ---------- game feedback ----------
 
-/** One note per rune: a pentatonic scale (G A C D E), so any sequence sounds like a melody. */
-const RUNE_NOTES = [392, 440, 523.25, 587.33, 659.25];
+/**
+ * One note per rune, from an eerie scale (A, B flat, C sharp, E, F: the "Hijaz" sound), low.
+ * Every sequence sounds like an incantation, not a nursery tune.
+ */
+const RUNE_NOTES = [220, 233.08, 277.18, 329.63, 349.23];
 
 /** A rune lights up or is pressed: a bell / marimba hit on its own note. */
 export function playRuneTone(rune: number, durationMs = 420) {
   const r = ready();
   if (!r) return;
-  bell(r.audio, r.out, RUNE_NOTES[rune % RUNE_NOTES.length], 0, Math.max(0.5, durationMs / 1000 + 0.3), 0.08, 0.3);
+  bell(r.audio, r.out, RUNE_NOTES[rune % RUNE_NOTES.length], 0, Math.max(0.7, durationMs / 1000 + 0.5), 0.1, 0.5);
 }
 
 /** A wrong rune: a short dissonant buzz. */
@@ -382,10 +391,10 @@ export function playPulseHit(great: boolean, combo: number) {
   const r = ready();
   if (!r) return;
   const { audio, out } = r;
-  noise(audio, out, { dur: 0.03, peak: 0.08, filter: 'highpass', from: 3000 });
-  const base = 784 * Math.pow(2, ((Math.max(1, combo) - 1) * 5) / 12); // a fourth up per combo step
-  if (great) bell(audio, out, base * 1.5, 0, 0.7, 0.07, 0.4);
-  else tone(audio, out, { freq: base, dur: 0.22, peak: 0.07, type: 'triangle', space: 0.25 });
+  noise(audio, out, { dur: 0.03, peak: 0.07, filter: 'bandpass', from: 1800 });
+  const base = 293.66 * Math.pow(2, ((Math.max(1, combo) - 1) * 3) / 12); // a minor third up per combo step
+  if (great) bell(audio, out, base * 1.5, 0, 1.0, 0.08, 0.5);
+  else tone(audio, out, { freq: base, dur: 0.3, peak: 0.07, type: 'triangle', lowpass: 1400, space: 0.35 });
 }
 
 /** Chrono-Pulse miss: a dull thud. */
@@ -402,6 +411,8 @@ export function playTimerTick(urgent: boolean) {
   const r = ready();
   if (!r) return;
   const { audio, out } = r;
-  tone(audio, out, { freq: urgent ? 1600 : 1200, dur: 0.05, peak: 0.05, type: 'sine' });
-  noise(audio, out, { dur: 0.02, peak: 0.03, filter: 'bandpass', from: urgent ? 2500 : 1800 });
+  // A clockwork tick with a low knock under it; the knock gets heavier when it's urgent.
+  tone(audio, out, { freq: urgent ? 900 : 700, dur: 0.04, peak: 0.04, type: 'sine' });
+  tone(audio, out, { freq: urgent ? 90 : 120, dur: 0.12, peak: urgent ? 0.1 : 0.06, type: 'sine' });
+  noise(audio, out, { dur: 0.02, peak: 0.03, filter: 'bandpass', from: 1400 });
 }
