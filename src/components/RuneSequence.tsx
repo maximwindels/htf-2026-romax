@@ -181,7 +181,8 @@ export function RuneSequence({ seed, onStabilize, onDone, doneLabel = 'Runes sea
   const state = phase === 'done' ? 'is-done' : phase === 'input' ? 'is-tuned' : ''
 
   return (
-    <section className={`grid-ui stabilizer rune-game ${state} ${wrong ? 'is-miss' : ''}`}>
+    // data-owns-digit-keys: the global 1-8 tab shortcut steps aside while this game is shown.
+    <section className={`grid-ui stabilizer rune-game ${state} ${wrong ? 'is-miss' : ''}`} data-owns-digit-keys>
       <div className="stabilizer-head">
         <div>
           <h2 className="stabilizer-title m-0 border-0 p-0">

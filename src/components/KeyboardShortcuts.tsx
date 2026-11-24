@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { visibleTabs } from '#/dashboard/tabs'
 import { useRouter } from '@tanstack/react-router'
 import { X } from 'lucide-react'
 import type { GlitchDetail } from '#/lib/glitch.ts'
@@ -50,10 +51,21 @@ export function KeyboardShortcuts({ guardian }: { guardian: Guardian }) {
       if (e.key === '?') return run(openShortcutsHelp)
       if (key === 'g') return run(() => (chordUntil = Date.now() + CHORD_MS))
       if (key === 't') return run(toggleTheme)
-      if (key === 'n') return run(() => router.navigate({ to: '/', search: { report: true } }))
+      if (key === 'n') {
+        // On the Glitches tab the dialog opens right there; everywhere else on the dashboard.
+        const to = path === '/glitches' || path === '/glitches/' ? '/glitches' : '/'
+        return run(() => router.navigate({ to, search: { report: true } }))
+      }
+
+      // 1-8: switch tab, in the order of the tab bar. Not while a Rune Sequence is on screen:
+      // that game uses 1-5 for its runes.
+      if (/^[1-9]$/.test(e.key) && !document.querySelector('[data-owns-digit-keys]')) {
+        const tab = visibleTabs(isCommander(guardian))[Number(e.key) - 1]
+        if (tab) return run(() => router.navigate({ to: tab.to }))
+      }
 
       // Overview: move focus through the glitch rows; Enter (on the row) opens it.
-      if (path === '/' && (key === 'j' || key === 'k')) {
+      if ((path === '/' || path === '/glitches' || path === '/glitches/') && (key === 'j' || key === 'k')) {
         const rows = [...document.querySelectorAll<HTMLElement>('[data-glitch-row]')]
         if (rows.length === 0) return
         return run(() => {

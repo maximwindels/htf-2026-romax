@@ -15,6 +15,8 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAnomaliesRouteImport } from './routes/_app/anomalies'
 import { Route as AppGuardiansRouteImport } from './routes/_app/guardians'
 import { Route as AppLeaderboardRouteImport } from './routes/_app/leaderboard'
+import { Route as AppMapRouteImport } from './routes/_app/map'
+import { Route as AppVitalsRouteImport } from './routes/_app/vitals'
 import { Route as ApiAnomaliesRouteImport } from './routes/api/anomalies'
 import { Route as ApiForecastsRouteImport } from './routes/api/forecasts'
 import { Route as ApiLatestRouteImport } from './routes/api/latest'
@@ -24,7 +26,9 @@ import { Route as ApiSeriesRouteImport } from './routes/api/series'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreamRouteImport } from './routes/api/stream'
 import { Route as ApiWarningsRouteImport } from './routes/api/warnings'
+import { Route as AppGlitchesIndexRouteImport } from './routes/_app/glitches.index'
 import { Route as AppGlitchesGlitchIdRouteImport } from './routes/_app/glitches.$glitchId'
+import { Route as AppNodesIndexRouteImport } from './routes/_app/nodes.index'
 import { Route as AppNodesNodeIdRouteImport } from './routes/_app/nodes.$nodeId'
 import { Route as ApiSimActionRouteImport } from './routes/api/sim.$action'
 import { Route as ApiAnomaliesIdAckRouteImport } from './routes/api/anomalies.$id.ack'
@@ -56,6 +60,16 @@ const AppGuardiansRoute = AppGuardiansRouteImport.update({
 const AppLeaderboardRoute = AppLeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMapRoute = AppMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppVitalsRoute = AppVitalsRouteImport.update({
+  id: '/vitals',
+  path: '/vitals',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiAnomaliesRoute = ApiAnomaliesRouteImport.update({
@@ -103,9 +117,19 @@ const ApiWarningsRoute = ApiWarningsRouteImport.update({
   path: '/api/warnings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppGlitchesIndexRoute = AppGlitchesIndexRouteImport.update({
+  id: '/glitches/',
+  path: '/glitches/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGlitchesGlitchIdRoute = AppGlitchesGlitchIdRouteImport.update({
   id: '/glitches/$glitchId',
   path: '/glitches/$glitchId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNodesIndexRoute = AppNodesIndexRouteImport.update({
+  id: '/nodes/',
+  path: '/nodes/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNodesNodeIdRoute = AppNodesNodeIdRouteImport.update({
@@ -130,6 +154,8 @@ export interface FileRoutesByFullPath {
   '/anomalies': typeof AppAnomaliesRoute
   '/guardians': typeof AppGuardiansRoute
   '/leaderboard': typeof AppLeaderboardRoute
+  '/map': typeof AppMapRoute
+  '/vitals': typeof AppVitalsRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -142,6 +168,8 @@ export interface FileRoutesByFullPath {
   '/glitches/$glitchId': typeof AppGlitchesGlitchIdRoute
   '/nodes/$nodeId': typeof AppNodesNodeIdRoute
   '/api/sim/$action': typeof ApiSimActionRoute
+  '/glitches/': typeof AppGlitchesIndexRoute
+  '/nodes/': typeof AppNodesIndexRoute
   '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRoutesByTo {
@@ -149,6 +177,8 @@ export interface FileRoutesByTo {
   '/anomalies': typeof AppAnomaliesRoute
   '/guardians': typeof AppGuardiansRoute
   '/leaderboard': typeof AppLeaderboardRoute
+  '/map': typeof AppMapRoute
+  '/vitals': typeof AppVitalsRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -162,6 +192,8 @@ export interface FileRoutesByTo {
   '/glitches/$glitchId': typeof AppGlitchesGlitchIdRoute
   '/nodes/$nodeId': typeof AppNodesNodeIdRoute
   '/api/sim/$action': typeof ApiSimActionRoute
+  '/glitches': typeof AppGlitchesIndexRoute
+  '/nodes': typeof AppNodesIndexRoute
   '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRoutesById {
@@ -171,6 +203,8 @@ export interface FileRoutesById {
   '/_app/anomalies': typeof AppAnomaliesRoute
   '/_app/guardians': typeof AppGuardiansRoute
   '/_app/leaderboard': typeof AppLeaderboardRoute
+  '/_app/map': typeof AppMapRoute
+  '/_app/vitals': typeof AppVitalsRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -184,6 +218,8 @@ export interface FileRoutesById {
   '/_app/glitches/$glitchId': typeof AppGlitchesGlitchIdRoute
   '/_app/nodes/$nodeId': typeof AppNodesNodeIdRoute
   '/api/sim/$action': typeof ApiSimActionRoute
+  '/_app/glitches/': typeof AppGlitchesIndexRoute
+  '/_app/nodes/': typeof AppNodesIndexRoute
   '/api/anomalies/$id/ack': typeof ApiAnomaliesIdAckRoute
 }
 export interface FileRouteTypes {
@@ -194,6 +230,8 @@ export interface FileRouteTypes {
     | '/anomalies'
     | '/guardians'
     | '/leaderboard'
+    | '/map'
+    | '/vitals'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -206,6 +244,8 @@ export interface FileRouteTypes {
     | '/glitches/$glitchId'
     | '/nodes/$nodeId'
     | '/api/sim/$action'
+    | '/glitches/'
+    | '/nodes/'
     | '/api/anomalies/$id/ack'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -213,6 +253,8 @@ export interface FileRouteTypes {
     | '/anomalies'
     | '/guardians'
     | '/leaderboard'
+    | '/map'
+    | '/vitals'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -226,6 +268,8 @@ export interface FileRouteTypes {
     | '/glitches/$glitchId'
     | '/nodes/$nodeId'
     | '/api/sim/$action'
+    | '/glitches'
+    | '/nodes'
     | '/api/anomalies/$id/ack'
   id:
     | '__root__'
@@ -234,6 +278,8 @@ export interface FileRouteTypes {
     | '/_app/anomalies'
     | '/_app/guardians'
     | '/_app/leaderboard'
+    | '/_app/map'
+    | '/_app/vitals'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -247,6 +293,8 @@ export interface FileRouteTypes {
     | '/_app/glitches/$glitchId'
     | '/_app/nodes/$nodeId'
     | '/api/sim/$action'
+    | '/_app/glitches/'
+    | '/_app/nodes/'
     | '/api/anomalies/$id/ack'
   fileRoutesById: FileRoutesById
 }
@@ -307,6 +355,20 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof AppLeaderboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/map': {
+      id: '/_app/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AppMapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/vitals': {
+      id: '/_app/vitals'
+      path: '/vitals'
+      fullPath: '/vitals'
+      preLoaderRoute: typeof AppVitalsRouteImport
       parentRoute: typeof AppRoute
     }
     '/api/anomalies': {
@@ -372,11 +434,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWarningsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/glitches/': {
+      id: '/_app/glitches/'
+      path: '/glitches'
+      fullPath: '/glitches/'
+      preLoaderRoute: typeof AppGlitchesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/glitches/$glitchId': {
       id: '/_app/glitches/$glitchId'
       path: '/glitches/$glitchId'
       fullPath: '/glitches/$glitchId'
       preLoaderRoute: typeof AppGlitchesGlitchIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/nodes/': {
+      id: '/_app/nodes/'
+      path: '/nodes'
+      fullPath: '/nodes/'
+      preLoaderRoute: typeof AppNodesIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/nodes/$nodeId': {
@@ -407,18 +483,26 @@ interface AppRouteChildren {
   AppAnomaliesRoute: typeof AppAnomaliesRoute
   AppGuardiansRoute: typeof AppGuardiansRoute
   AppLeaderboardRoute: typeof AppLeaderboardRoute
+  AppMapRoute: typeof AppMapRoute
+  AppVitalsRoute: typeof AppVitalsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppGlitchesGlitchIdRoute: typeof AppGlitchesGlitchIdRoute
   AppNodesNodeIdRoute: typeof AppNodesNodeIdRoute
+  AppGlitchesIndexRoute: typeof AppGlitchesIndexRoute
+  AppNodesIndexRoute: typeof AppNodesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAnomaliesRoute: AppAnomaliesRoute,
   AppGuardiansRoute: AppGuardiansRoute,
   AppLeaderboardRoute: AppLeaderboardRoute,
+  AppMapRoute: AppMapRoute,
+  AppVitalsRoute: AppVitalsRoute,
   AppIndexRoute: AppIndexRoute,
   AppGlitchesGlitchIdRoute: AppGlitchesGlitchIdRoute,
   AppNodesNodeIdRoute: AppNodesNodeIdRoute,
+  AppGlitchesIndexRoute: AppGlitchesIndexRoute,
+  AppNodesIndexRoute: AppNodesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

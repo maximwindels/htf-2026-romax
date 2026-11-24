@@ -197,3 +197,24 @@ function PixelMeter({
     </div>
   );
 }
+
+/**
+ * Compact version for the dashboard: every node as a small chip with its town and status.
+ * The full cards with meters live on the Nodes tab.
+ */
+export function NodeStrip({ nodes, statuses }: NodeGridProps) {
+  return (
+    <div className="node-strip">
+      {nodes.map((n) => {
+        const status = statuses[n.id] ?? 'ok'
+        return (
+          <NodeLink key={n.id} nodeId={n.id} className={`node-chip status-${status}`}>
+            <TownScene node={n} status={status} className="town-scene chip-scene" />
+            <span className="node-chip-name">{n.name}</span>
+            <SeverityBadge severity={status} />
+          </NodeLink>
+        )
+      })}
+    </div>
+  )
+}

@@ -36,7 +36,7 @@ export interface MetricChartProps {
 }
 
 /** One colour per metric, the same family as its pixel icon. */
-const METRIC_COLOR: Record<Metric, string> = {
+export const METRIC_COLOR: Record<Metric, string> = {
   load: "#7fb2ff",
   latency: "#e292f4",
   temperature: "#f0a04b",

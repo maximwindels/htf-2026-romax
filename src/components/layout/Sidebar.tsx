@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
-import { Activity, LayoutGrid, LogOut, TriangleAlert, Trophy, Users, type LucideIcon } from 'lucide-react'
+import {
+  Activity,
+  Castle,
+  ChartLine,
+  LayoutGrid,
+  LogOut,
+  Map,
+  Sparkles,
+  TriangleAlert,
+  Trophy,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 import { AetherBadge } from '#/components/AetherBadge.tsx'
 import { RoleBadge } from '#/components/RoleBadge.tsx'
 import { logout } from '#/lib/auth.functions.ts'
@@ -9,13 +21,17 @@ import { isCommander, type Guardian } from '#/lib/guardian.ts'
 type NavItem = {
   label: string
   icon: LucideIcon
-  to: '/' | '/anomalies' | '/leaderboard' | '/guardians'
+  to: '/' | '/map' | '/vitals' | '/nodes' | '/glitches' | '/anomalies' | '/leaderboard' | '/guardians'
   /** Hidden for defenders. */
   commanderOnly?: boolean
 }
 
 const navItems: NavItem[] = [
-  { label: 'Overview', icon: LayoutGrid, to: '/' },
+  { label: 'Dashboard', icon: LayoutGrid, to: '/' },
+  { label: 'Map', icon: Map, to: '/map' },
+  { label: 'Vitals', icon: ChartLine, to: '/vitals' },
+  { label: 'Nodes', icon: Castle, to: '/nodes' },
+  { label: 'Glitches', icon: Sparkles, to: '/glitches' },
   { label: 'Anomalies', icon: TriangleAlert, to: '/anomalies' },
   { label: 'Leaderboard', icon: Trophy, to: '/leaderboard' },
   { label: 'Guardians', icon: Users, to: '/guardians', commanderOnly: true },
@@ -43,7 +59,7 @@ export function Sidebar({ guardian }: { guardian: Guardian }) {
             aria-label={label}
             title={label}
             className={itemClass}
-            activeOptions={{ exact: true }}
+            activeOptions={{ exact: to === '/' }}
             activeProps={{ className: activeClass }}
           >
             <Icon className="size-6" strokeWidth={1.5} />
