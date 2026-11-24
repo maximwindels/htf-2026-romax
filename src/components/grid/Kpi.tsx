@@ -39,10 +39,10 @@ function CorruptibleValue({ seed, value }: { seed: string; value: string }) {
   const corrupted = level >= 2 && hash(seed) % 4 < (level === 3 ? 2 : 1);
   const [frame, setFrame] = useState(0);
 
-  // Corrupted text flickers between garbage variants.
+  // Corrupted text slowly cycles through garbage variants (slow on purpose: fast flicker is tiring).
   useEffect(() => {
     if (!corrupted) return;
-    const id = setInterval(() => setFrame((f) => f + 1), 900);
+    const id = setInterval(() => setFrame((f) => f + 1), 3000);
     return () => clearInterval(id);
   }, [corrupted]);
 

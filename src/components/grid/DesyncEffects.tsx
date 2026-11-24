@@ -51,10 +51,75 @@ export function DesyncEffects({ state }: { state: DesyncState }) {
     setHum(soundOn ? magic : null);
   }, [soundOn, magic]);
 
-  if (!banner) return null;
+  // Damage that follows the magic left: <html data-magic="whole|cracked|shattered|broken">,
+  // plus --magic-loss (0..1) for effects that scale smoothly. All of it is styled in grid.css.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.magic = magicTier(magic);
+    root.style.setProperty('--magic-loss', String((100 - magic) / 100));
+  }, [magic]);
+  useEffect(
+    () => () => {
+      delete document.documentElement.dataset.magic;
+      document.documentElement.style.removeProperty('--magic-loss');
+    },
+    [],
+  );
+
   return (
-    <div key={banner.key} className={`desync-banner ${banner.worse ? 'is-worse' : 'is-better'}`} role="status">
-      {banner.text}
+    <>
+      <CrackOverlay />
+      {banner && (
+        <div key={banner.key} className={`desync-banner ${banner.worse ? 'is-worse' : 'is-better'}`} role="status">
+          {banner.text}
+        </div>
+      )}
+    </>
+  );
+}
+
+/** ≤ 77 % cracked, ≤ 33 % shattered, 0 % broken. */
+export function magicTier(magic: number) {
+  if (magic <= 0) return 'broken';
+  if (magic <= 33) return 'shattered';
+  if (magic <= 77) return 'cracked';
+  return 'whole';
+}
+
+// ---------- crack drawings (shown and animated by grid.css per tier) ----------
+
+/** Cracks spreading from a corner (drawn for the top-left; other corners are mirrored in CSS). */
+const CORNER_MAIN = 'M0 0L60 38L95 41L140 88L190 101L232 150L300 168L340 220L400 236';
+const CORNER_BRANCHES = [
+  'M60 38L72 90L110 128L118 190L160 232',
+  'M95 41L150 30L210 46L260 30L330 52',
+  'M140 88L170 140L150 180',
+  'M190 101L230 92L270 118',
+  'M110 128L70 160L60 220L20 260',
+  'M232 150L240 210L280 250',
+  'M160 232L150 290L180 330',
+].join('');
+
+/** One crack: a dark offset edge underneath, the red crack, and a bright core on the main line. */
+function Crack({ main, branches }: { main: string; branches: string }) {
+  return (
+    <>
+      <path className="crack-edge" d={main + branches} pathLength={1} transform="translate(2 2)" />
+      <path className="crack-line" d={main + branches} pathLength={1} />
+      <path className="crack-core" d={main} pathLength={1} />
+    </>
+  );
+}
+
+function CrackOverlay() {
+  return (
+    <div className="desync-cracks" aria-hidden>
+      <div className="desync-vignette" />
+      {(['tl', 'tr', 'br', 'bl'] as const).map((corner) => (
+        <svg key={corner} className={`crack crack-${corner}`} viewBox="0 0 400 400">
+          <Crack main={CORNER_MAIN} branches={CORNER_BRANCHES} />
+        </svg>
+      ))}
     </div>
   );
 }
