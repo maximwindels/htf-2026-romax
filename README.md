@@ -129,7 +129,8 @@ Every page except `/login` needs a logged-in guardian (Maxim's session login, `s
 
 ### What it adds
 
-- **Overview (`/`):** live KPIs, the ley-line network map, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
+- **Overview (`/`):** live KPIs, the pixel-art map of Achrona, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
+- **Map of Achrona** (`src/components/grid/NetworkMap.tsx`, `map/`): generated pixel terrain (mountains, forests, swamp, desert, river, sea), a pixel-art town per node, roads with flowing mana. Corruption stains the land around a town and spreads visibly along the roads to its neighbours (magenta pulses run from the corrupted town outward); neighbours are marked threatened, early warnings get a blinking "!". Hover or focus a town for its live values, click to open it.
 - **Anomalies (`/anomalies`):** anomaly log with sorting, search, filters, pages and acknowledge (TanStack Table).
 - **Node detail (`/nodes/$nodeId`):** the four charts of one node with forecast lines, plus demo buttons.
 - **Early warning:** a trend line per node and metric predicts when a hard limit will be crossed, before it happens. When the limit is really crossed, the warning is confirmed and its lead time is stored.
