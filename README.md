@@ -175,7 +175,7 @@ Choose the engine in `.env` (gitignored, see `.env.example`), then restart `npm 
 
 | `AI_PROVIDER` | Engine | Key |
 |---|---|---|
-| `gemini` (default when its key is set) | Google Gemini Flash, free tier: `gemini-2.5-flash`, then `gemini-3.5-flash` and `gemini-2.5-flash-lite` when one is busy (`GEMINI_MODEL` to try another model first) | `GEMINI_API_KEY` |
+| `gemini` (default when its key is set) | Google Gemini Flash, free tier: `gemini-3.8-flash`, then `gemini-3.7-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` and `gemini-3.5-flash` when one is busy or times out (the 2.5 models are closed to new accounts) (`GEMINI_MODEL` to try another model first) | `GEMINI_API_KEY` |
 | `claude` | Anthropic Claude (`claude-opus-5-5`) | `ANTHROPIC_API_KEY` |
 | `rules` | No AI, built-in rules only | none |
 

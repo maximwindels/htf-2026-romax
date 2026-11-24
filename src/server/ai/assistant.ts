@@ -12,7 +12,7 @@ import {
   listNodes,
   stats,
 } from "#/server/grid/queries.ts";
-import { askText } from "./llm";
+import { aiEnabled, askText } from "./llm";
 import type { Source } from "./triage";
 
 export type ChatTurn = { role: "user" | "assistant"; text: string };
@@ -92,8 +92,14 @@ function snapshot(): string {
   ].join("\n");
 }
 
-/** Answer without Claude: the headline numbers, so the panel is still useful offline. */
+/**
+ * Answer without the AI: the headline numbers, so the panel is still useful offline.
+ * The opening line says why: no key at all, or a key whose model did not answer in time.
+ */
 function answerWithRules(): string {
+  const why = aiEnabled()
+    ? "My crystal is clouded, guardian: the spirit of foresight did not answer in time (the AI model is busy or unreachable). Yet the plain runes still speak:"
+    : "My crystal is dim, guardian: no spirit of foresight is bound to me (no AI key is set). Yet the plain runes still speak:";
   const s = stats();
   const open = db
     .select()
@@ -105,7 +111,7 @@ function answerWithRules(): string {
   const forecasts = currentForecasts();
   const rifts = open.map((g) => `${g.glitchId} (${g.status.toLowerCase()})`).join(", ");
   return [
-    "My crystal is dim, guardian: no spirit of foresight is bound to me (no AI key is set). Yet the plain runes still speak:",
+    why,
     `• Tremors unanswered: ${s.openBySeverity.critical} critical, ${s.openBySeverity.high} high, ${s.openBySeverity.medium} medium.`,
     `• Omens of things to come: ${forecasts.length} early warning${forecasts.length === 1 ? "" : "s"}.`,
     `• The freshest rifts in the weave: ${rifts || "none, for now"}.`,

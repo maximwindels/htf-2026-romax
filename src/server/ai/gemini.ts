@@ -6,13 +6,18 @@ import { z } from "zod";
 
 /**
  * Models to try, in order. The first one is GEMINI_MODEL from .env when set.
- * Busy (503), rate-limited (429) or unknown (404) models are skipped for the next one,
+ * Busy (503), rate-limited (429), unknown (404) or timed-out (504) models are skipped for the next one,
  * because the free tier often has one model overloaded while another one is fine.
  */
+// Newest first; the 2.5 models are closed to new accounts ("no longer available to new users", 404).
+// The lighter "lite" models come before the slow 3.5-flash: when the big ones are overloaded (503),
+// a lite model usually still answers quickly, and an operator is waiting.
 const DEFAULT_MODELS = [
-  "gemini-2.5-flash",
+  "gemini-3.8-flash",
+  "gemini-3.7-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite",
   "gemini-3.5-flash",
-  "gemini-2.5-flash-lite",
 ];
 
 function modelChain() {
@@ -36,8 +41,8 @@ function getClient() {
   client ??= new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
     // v1beta: the v1 API does not accept system instructions or JSON schemas.
-    // 20 s timeout: an operator is waiting on these calls.
-    httpOptions: { apiVersion: "v1beta", timeout: 20_000 },
+    // 12 s per model: an operator is waiting, and a slow model is skipped for the next one.
+    httpOptions: { apiVersion: "v1beta", timeout: 12_000 },
   });
   return client;
 }
@@ -65,8 +70,9 @@ async function generate(
       return response.text?.trim() || null;
     } catch (error) {
       const status = statusOf(error);
+      // 504: that model timed out (DEADLINE_EXCEEDED); another one often answers fine.
       const retryable =
-        status === 503 || status === 429 || status === 404 || status === 500;
+        status === 503 || status === 429 || status === 404 || status === 500 || status === 504;
       console.warn(
         `[ai] gemini ${kind} on ${model}: ${status ?? ""} ${error instanceof Error ? error.message.slice(0, 160) : String(error)}`,
       );
