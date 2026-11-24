@@ -115,16 +115,28 @@ Every page except `/login` needs a logged-in guardian (Maxim's session login, `s
 | Acknowledge an anomaly | yes | yes |
 | Report an echo (new glitch or update) | yes | yes |
 | Demo controls (overheating, glitch, Desync wave) | no (hidden, API returns 403) | yes |
-| Change glitch status, delete a glitch, Guardians page | no | yes |
+| Move a glitch one status forward | only when it is assigned to them | yes (any status, also back) |
+| Assign a glitch to a defender | no | yes |
+| Delete a glitch, Guardians page | no | yes |
+
+### Glitch workflow
+
+- **Status lifecycle:** every glitch goes `LEAKED` > `ASSESSING` > `CONTAINING` > `FIXED`. The glitch page shows it as a stepper.
+- **Assignment:** a commander assigns a glitch to a defender (Commander controls on the glitch page). The defender sees it under **Assigned to me** on the overview, sends updates as echoes, and moves it forward with **Move to ...**.
+- **History:** every status change and (re)assignment is stored in `glitch_events` (who, when, from, to) and shown between the echoes.
+- **Live:** changes reach every open dashboard through the SSE `glitch` event.
+- Code: `src/lib/glitches.functions.ts` (`setGlitchStatus`, `assignGlitch`, `getDefenders`), `src/routes/_app/glitches.$glitchId.tsx`, `src/components/StatusStepper.tsx`.
 
 ### What it adds
 
-- **Overview (`/`):** live KPIs, the ley-line network map, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
+- **Overview (`/`):** live KPIs, the pixel-art map of Achrona, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
+- **Map of Achrona** (`src/components/grid/NetworkMap.tsx`, `map/`): generated pixel terrain (mountains, forests, swamp, desert, river, sea), a pixel-art town per node, roads with flowing mana. Corruption stains the land around a town and spreads visibly along the roads to its neighbours (magenta pulses run from the corrupted town outward); neighbours are marked threatened, early warnings get a blinking "!". Hover or focus a town for its live values, click to open it.
 - **Anomalies (`/anomalies`):** anomaly log with sorting, search, filters, pages and acknowledge (TanStack Table).
 - **Node detail (`/nodes/$nodeId`):** the four charts of one node with forecast lines, plus demo buttons.
 - **Early warning:** a trend line per node and metric predicts when a hard limit will be crossed, before it happens. When the limit is really crossed, the warning is confirmed and its lead time is stored.
 - **Predictive glitches:** critical anomalies open a glitch (status `LEAKED`, marked `[auto]`) in the starter's glitch list. A Desync wave becomes one glitch. New glitches appear live.
 - **Live updates:** one Server-Sent Events stream (`/api/stream`) writes every event into the TanStack Query cache.
+- **Report for the High Council (PDF):** the **Report PDF** button in the top bar downloads `GET /api/report`. It holds the summary, KPIs, glitches by status, 30-minute trend charts, node status, the glitch register, the most important anomalies and the early-warning log, in the app's theme. Any logged-in guardian may export it. Code: `src/server/report/` (react-pdf, fonts from `@fontsource`).
 - **Theme:** HTF 2026 "Curse of Achrona". The starter's Tailwind tokens in `src/styles.css` are mapped to the theme colours; dashboard styles are in `src/grid.css`.
 - **Light / dark mode:** dark is the default; toggle with the sun/moon button in the top bar or <kbd>T</kbd>. The choice is stored in `localStorage` and applied before the first paint (`src/lib/theme.ts`). Light tokens are at the bottom of `src/styles.css`; Tailwind's `dark:` variant follows the toggle.
 - **Stabilize mini-games:** a glitch in `CONTAINING` (and a critical anomaly) can only be cleared by winning one of two games. Each incident gets one, fixed by its id; a button underneath switches to the other (`src/components/StabilizeGame.tsx`).
@@ -176,10 +188,15 @@ src/components/grid/        one file per dashboard component
 | GET | `/api/forecasts` | active forecasts with ETA |
 | GET | `/api/warnings?limit=100` | early-warning log with lead time |
 | GET | `/api/stats` | numbers for the KPI cards |
+| GET | `/api/report` | PDF report for the High Council (download) |
 | GET | `/api/stream` | SSE: `tick`, `anomaly`, `ack`, `warning`, `warning-confirmed`, `glitch`, `ping` |
 | POST | `/api/sim/glitch` `{nodeId?, metric?}` | demo: sudden glitch |
 | POST | `/api/sim/ramp` `{nodeId?, metric?}` | demo: slow build-up (the forecaster sees it coming) |
 | POST | `/api/sim/desync` | demo: Desync wave |
+
+### Dev note: react-pdf
+
+`package.json` has an npm `overrides` entry for `@react-pdf/hyphenate` (`0.1.0`). The latest `@react-pdf/textkit` asks for `^0.1.1`, which is not published, so `npm install` fails without it.
 
 ### Dev note (Windows)
 

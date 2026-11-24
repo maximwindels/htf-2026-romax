@@ -35,6 +35,10 @@ export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync:
             LVL {desync.level} · {DESYNC_LEVELS[desync.level].name}
           </span>
         </div>
+        {/* Downloads the High Council PDF (Content-Disposition: attachment, so the page stays open). */}
+        <a className="btn-report" href="/api/report" title="Export the most important data as a PDF for the High Council">
+          Report PDF
+        </a>
         <button
           className="btn-small ghost inline-flex items-center"
           onClick={openShortcutsHelp}

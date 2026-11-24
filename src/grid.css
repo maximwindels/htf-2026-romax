@@ -213,17 +213,97 @@ a { color: var(--pink); text-decoration: none; }
 .chart-head .big { color: var(--text); }
 
 /* ---------- ley-line map (pixel nodes) ---------- */
+/* ---------- map of Achrona: pixel terrain, towns, roads and ley lines (NetworkMap.tsx) ----------
+   The map is a dark "scrying table" in both light and dark mode, like the stabilizer's scope.
+   Pixel look: crisp edges, stepped animations, hard outlines. No glows. */
 .map { width: 100%; height: auto; display: block; }
-.link { stroke: rgba(91, 155, 255, 0.4); stroke-width: 0.35; }
-.link-bad { stroke: var(--pink); stroke-width: 0.5; stroke-dasharray: 1 1; animation: dash 0.8s steps(4) infinite; }
-.map-node text { fill: var(--muted); font: 700 2.8px var(--font-caps); }
-.map-node .dot { fill: var(--ok); shape-rendering: crispEdges; }
-.map-node .dot-edge { fill: var(--blue-dark); shape-rendering: crispEdges; }
-.map-node:hover text { fill: var(--text); }
-.map-node .pulse { fill: none; stroke-width: 0.5; shape-rendering: crispEdges; transform-box: fill-box; transform-origin: center; animation: pulse 1.2s steps(4) infinite; }
-.status-medium .dot { fill: var(--sev-medium); } .status-medium .pulse { stroke: var(--sev-medium); }
-.status-high .dot { fill: var(--sev-high); } .status-high .pulse { stroke: var(--sev-high); }
-.status-critical .dot { fill: var(--sev-critical); } .status-critical .pulse { stroke: var(--sev-critical); }
+.map-frame { position: relative; }
+/* phones: keep the towns readable; the map gets a minimum width and can be panned sideways */
+@media (max-width: 700px) {
+  .map-frame { overflow-x: auto; }
+  .pixel-map { min-width: 560px; }
+}
+.pixel-map { border-radius: 10px; border: 1px solid var(--line); background: #14304f; }
+
+.road-edge { fill: none; stroke: #120b18; stroke-width: 2.6; stroke-linecap: round; opacity: 0.7; }
+.road { fill: none; stroke: #6a5638; stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 2 1; }
+.ley { fill: none; stroke-linecap: round; }
+/* healthy: small blue mana sparks travel along the road */
+.ley-ok { stroke: #7fb2ff; stroke-width: 0.9; stroke-dasharray: 1 6; animation: ley-flow 2.8s linear infinite; }
+/* one end corrupted: magenta pulses run from the corrupted town to its neighbour */
+.ley-spread { stroke: #e04fd0; stroke-width: 1.3; stroke-dasharray: 3 3; animation: ley-flow-fast 0.9s linear infinite; }
+/* both ends corrupted: a broken, flickering line */
+.ley-corrupt { stroke: #8a2a9a; stroke-width: 1.4; stroke-dasharray: 4 1.5 1 1.5; animation: ley-flicker 1.6s steps(1) infinite; }
+.spread-blob-edge { fill: #140c1c; }
+.spread-blob-core { fill: #e04fd0; }
+
+.town { cursor: pointer; }
+.town-hit { fill: transparent; }
+.plate { fill: #140c1c; fill-opacity: 0.85; stroke: rgba(225, 231, 255, 0.25); stroke-width: 0.3; }
+.plate-text { fill: #e1e7ff; font: 700 3.6px var(--font-caps); letter-spacing: 0.1px; pointer-events: none; }
+.town:hover .plate, a:focus-visible .plate { fill: #2a1d40; stroke: #e1e7ff; }
+.state-medium .plate { stroke: #e292f4; }
+.state-high .plate { stroke: #f48d30; }
+.state-critical .plate { stroke: #eb4c2d; stroke-width: 0.5; }
+.state-warning .plate, .state-threatened .plate { stroke: #e1e7ff; stroke-dasharray: 1 0.6; }
+
+/* corrupted towns: purple stain; critical: red/cyan split + a glitch twitch now and then */
+.stain { fill: #a52bd9; opacity: 0.32; }
+.split-r { fill: #ff285a; opacity: 0.55; }
+.split-c { fill: #00e5ff; opacity: 0.55; }
+.state-critical .building { animation: town-glitch 2.4s steps(1) infinite; }
+.warn-mark { animation: blink 1s steps(1) infinite; }
+.threat-ring { fill: none; stroke: #e292f4; stroke-width: 0.6; stroke-dasharray: 1.5 1.5; animation: ley-flow-fast 1.6s linear infinite; }
+
+/* living details: forge fire, sparkles, lightning, water */
+.px-fire { animation: px-flicker 0.5s steps(1) infinite; }
+.px-fire-2 { animation-delay: -0.25s; }
+.px-sparkle { animation: px-sparkle 2.2s steps(1) infinite; }
+.px-bolt { animation: px-bolt 2.6s steps(1) infinite; }
+.px-shimmer, .px-waves { animation: px-shimmer 3s steps(3) infinite; }
+.corrupt-sparks { animation: px-flicker 1.1s steps(1) infinite; }
+
+/* hover card with live values */
+.map-tip {
+  position: absolute;
+  z-index: 5;
+  min-width: 180px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 4px 0 var(--blue-dark); /* hard edge, no blur */
+  pointer-events: none;
+}
+.map-tip-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-family: var(--font-caps); }
+.map-tip-state { margin-top: 2px; font: 700 12px/1.2 var(--font-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ok); }
+.map-tip-state.state-medium { color: var(--sev-medium); }
+.map-tip-state.state-high { color: var(--sev-high); }
+.map-tip-state.state-critical { color: var(--sev-critical); }
+.map-tip-state.state-warning, .map-tip-state.state-threatened { color: var(--text); }
+.map-tip dl { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin: 6px 0 4px; }
+.map-tip dl div { display: contents; }
+.map-tip dt { color: var(--muted); }
+.map-tip dd { margin: 0; font-family: var(--font-mono); text-align: right; }
+
+.map-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; list-style: none; padding: 0; margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.map-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.lg { display: inline-block; width: 16px; height: 4px; }
+.lg-ley { background: repeating-linear-gradient(90deg, #7fb2ff 0 2px, transparent 2px 6px); }
+.lg-spread { background: repeating-linear-gradient(90deg, #e04fd0 0 4px, transparent 4px 7px); }
+.lg-corrupt { width: 10px; height: 10px; background: repeating-linear-gradient(90deg, #5e1a80 0 3px, #3a1048 3px 6px); }
+.lg-warning { width: 4px; height: 10px; background: #e1e7ff; }
+.lg-threat { width: 10px; height: 10px; border: 1px dashed #e292f4; }
+
+@keyframes ley-flow { to { stroke-dashoffset: -14; } }
+@keyframes ley-flow-fast { to { stroke-dashoffset: -6; } }
+@keyframes ley-flicker { 50% { opacity: 0.45; } }
+@keyframes town-glitch { 0%, 100% { transform: none; } 62% { transform: translateX(0.6px); } 64% { transform: translateX(-0.6px); } 66% { transform: none; } }
+@keyframes px-flicker { 50% { opacity: 0.35; } }
+@keyframes px-sparkle { 0%, 60% { opacity: 0; } 62%, 80% { opacity: 1; } 81%, 100% { opacity: 0; } }
+@keyframes px-bolt { 0%, 85% { opacity: 0.15; } 86%, 91% { opacity: 1; } 92% { opacity: 0.15; } 94%, 96% { opacity: 1; } 97%, 100% { opacity: 0.15; } }
+@keyframes px-shimmer { 50% { opacity: 0.4; } }
 
 /* ---------- alert feed ---------- */
 .feed ul { list-style: none; margin: 0; padding: 0; max-height: 440px; overflow-y: auto; }
@@ -251,8 +331,6 @@ a { color: var(--pink); text-decoration: none; }
 }
 .warnings-foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .badge-warning { color: var(--text); border-style: dashed; }
-.status-forecast .dot { fill: var(--text); }
-.status-forecast .pulse { stroke: var(--text); stroke-dasharray: 1 1; }
 .toast.sev-warning { border-left-color: var(--indigo); }
 .toast .badge-warning { color: var(--indigo); }
 
@@ -513,6 +591,21 @@ html[data-desync='3'] body::after {
 }
 .desync-banner.is-worse { color: #160f1f; background: var(--grad-creatives); }
 .desync-banner.is-better { color: #e1e7ff; background: var(--grad-hackers); }
+
+/* "Report PDF" link in the top bar: looks like the small 3D buttons. */
+.btn-report {
+  font: 600 12px/1.2 var(--font-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e1e7ff; /* light text on the blue button, in light and dark mode */
+  background: var(--grad-hackers);
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-shadow: 0 3px 0 #00163f;
+  white-space: nowrap;
+}
+.btn-report:hover { color: #e1e7ff; transform: translateY(-1px); box-shadow: 0 4px 0 #00163f; }
+.btn-report:active { transform: translateY(2px); box-shadow: 0 1px 0 #00163f; }
 
 /* ---------- The Desync breaks the screen: damage by magic left ----------
    <html data-magic>: whole (> 77 %) · cracked (<= 77 %) · shattered (<= 33 %) · broken (0 %)

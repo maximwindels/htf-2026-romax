@@ -16,6 +16,12 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@fontsource/alegreya": "^5.3.0",
+    "@fontsource/alegreya-sc": "^5.3.0",
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/pirata-one": "^5.3.0",
+    "@react-pdf/renderer": "^4.9.1",
     "@tailwindcss/vite": "^4.3.5",
     "@tanstack/react-devtools": "0.10.14",
     "@tanstack/react-query": "^5.108.4",
@@ -49,5 +55,8 @@
       "esbuild",
       "lightningcss"
     ]
+  },
+  "overrides": {
+    "@react-pdf/hyphenate": "0.1.0"
   }
 }

@@ -18,6 +18,7 @@ import { Route as ApiAnomaliesRouteImport } from './routes/api/anomalies'
 import { Route as ApiForecastsRouteImport } from './routes/api/forecasts'
 import { Route as ApiLatestRouteImport } from './routes/api/latest'
 import { Route as ApiNodesRouteImport } from './routes/api/nodes'
+import { Route as ApiReportRouteImport } from './routes/api/report'
 import { Route as ApiSeriesRouteImport } from './routes/api/series'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreamRouteImport } from './routes/api/stream'
@@ -71,6 +72,11 @@ const ApiNodesRoute = ApiNodesRouteImport.update({
   path: '/api/nodes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReportRoute = ApiReportRouteImport.update({
+  id: '/api/report',
+  path: '/api/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSeriesRoute = ApiSeriesRouteImport.update({
   id: '/api/series',
   path: '/api/series',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
   '/api/nodes': typeof ApiNodesRoute
+  '/api/report': typeof ApiReportRoute
   '/api/series': typeof ApiSeriesRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/stream': typeof ApiStreamRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
   '/api/nodes': typeof ApiNodesRoute
+  '/api/report': typeof ApiReportRoute
   '/api/series': typeof ApiSeriesRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/stream': typeof ApiStreamRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
   '/api/nodes': typeof ApiNodesRoute
+  '/api/report': typeof ApiReportRoute
   '/api/series': typeof ApiSeriesRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/stream': typeof ApiStreamRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/api/forecasts'
     | '/api/latest'
     | '/api/nodes'
+    | '/api/report'
     | '/api/series'
     | '/api/stats'
     | '/api/stream'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/api/forecasts'
     | '/api/latest'
     | '/api/nodes'
+    | '/api/report'
     | '/api/series'
     | '/api/stats'
     | '/api/stream'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/api/forecasts'
     | '/api/latest'
     | '/api/nodes'
+    | '/api/report'
     | '/api/series'
     | '/api/stats'
     | '/api/stream'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   ApiForecastsRoute: typeof ApiForecastsRoute
   ApiLatestRoute: typeof ApiLatestRoute
   ApiNodesRoute: typeof ApiNodesRoute
+  ApiReportRoute: typeof ApiReportRoute
   ApiSeriesRoute: typeof ApiSeriesRoute
   ApiStatsRoute: typeof ApiStatsRoute
   ApiStreamRoute: typeof ApiStreamRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/api/nodes'
       fullPath: '/api/nodes'
       preLoaderRoute: typeof ApiNodesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/report': {
+      id: '/api/report'
+      path: '/api/report'
+      fullPath: '/api/report'
+      preLoaderRoute: typeof ApiReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/series': {
@@ -401,6 +421,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiForecastsRoute: ApiForecastsRoute,
   ApiLatestRoute: ApiLatestRoute,
   ApiNodesRoute: ApiNodesRoute,
+  ApiReportRoute: ApiReportRoute,
   ApiSeriesRoute: ApiSeriesRoute,
   ApiStatsRoute: ApiStatsRoute,
   ApiStreamRoute: ApiStreamRoute,
