@@ -129,7 +129,9 @@ Every page except `/login` needs a logged-in guardian (Maxim's session login, `s
 
 ### What it adds
 
-- **Overview (`/`):** live KPIs, the pixel-art map of Achrona, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
+- **Tabs:** Dashboard (`/`), Map (`/map`), Vitals (`/vitals`), Nodes (`/nodes`), Glitches (`/glitches`), Anomalies, Leaderboard, and Guardians for commanders. Tab bar under the top bar, same items in the sidebar, number keys `1`-`8` switch tabs (list in `src/dashboard/tabs.ts`).
+- **Dashboard (`/`):** one-glance view: KPIs, the map with early warnings, open alerts and four mini vitals next to it, the newest open glitches and a node strip. Every block links to its full tab.
+- **Overview blocks (`src/dashboard/Overview.tsx`):** live KPIs, the pixel-art map of Achrona, early warnings, open alerts, four live charts, node cards, and the starter's glitch list below them.
 - **Map of Achrona** (`src/components/grid/NetworkMap.tsx`, `map/`): generated pixel terrain (mountains, forests, swamp, desert, river, sea), a pixel-art town per node, roads with flowing mana. Corruption stains the land around a town and spreads visibly along the roads to its neighbours (magenta pulses run from the corrupted town outward); neighbours are marked threatened, early warnings get a blinking "!". Hover or focus a town for its live values, click to open it.
 - **Pixel-art dashboard:** the charts are dark "scrying panels" (pixel grid, stepped line, dithered area, red danger zone above the limit, pixel anomaly markers, low/avg/high/limit chips). Node cards show the town on its own land with a pixel meter per metric (0 to the hard limit). KPIs and section titles have pixel icons (`PixelIcon.tsx`).
 - **Anomalies (`/anomalies`):** anomaly log with sorting, search, filters, pages and acknowledge (TanStack Table).

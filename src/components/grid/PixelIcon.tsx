@@ -97,6 +97,14 @@ const ICONS = {
   ],
   // glitches: a tear in the weave of magic
   rift: ['...UU....', '..UPPU...', '.UP*.PU..', '.UP..PU..', '..UP.PU..', '...UPU...', '....U....', '.........'],
+  // tab: the map of Achrona, a folded parchment
+  map: ['.TTtTTtT.', '.TGGtCCt.', '.TGTtCTt.', '.TtTtTTt.', '.TTtGGtT.', '.TTtGTtT.', '.TTtTTtT.', '.........'],
+  // tab: vital statistics, a heartbeat on a screen
+  vitals: ['KKKKKKKKK', 'KbbbbbbbK', 'KbbbbPbbK', 'KbbbPbPbK', 'KPPPbbbPK', 'KbbbbbbbK', 'KKKKKKKKK', '.........'],
+  // tab: leaderboard, a golden cup
+  trophy: ['.YYYYYYY.', 'YYYYYYYYY', '.YYYYYYY.', '..YYYYY..', '...YYY...', '....Y....', '..TTTTT..', '.........'],
+  // tab: guardians, a shield
+  shield: ['.SSSSSSS.', '.SBBSBBS.', '.SBBSBBs.', '.SSSSSSs.', '..SBBBs..', '...SBs...', '....s....', '.........'],
 } satisfies Record<string, string[]>;
 
 export type PixelIconName = keyof typeof ICONS;
