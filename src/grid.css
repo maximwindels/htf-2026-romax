@@ -48,7 +48,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font: 16px/1.45 var(--font-serif);
-  min-height: 100vh;
+  min-height: var(--screen-h, 100vh);
 }
 /* speckle grain like the site's "Spikkel" texture */
 body::before {
@@ -960,7 +960,7 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
   /* Holds the icon rail's width in the layout; the panel inside opens over the page. */
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: var(--screen-h, 100vh);
   width: 68px;
   flex-shrink: 0;
   z-index: 40;
@@ -1254,7 +1254,7 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
   display: flex;
   flex-direction: column;
   width: min(420px, calc(100vw - 36px));
-  height: min(600px, calc(100vh - 120px));
+  height: min(600px, calc(var(--screen-h, 100vh) - 120px));
   background: var(--panel);
   border: 1px solid var(--line);
   border-top: 4px solid var(--pink);
@@ -1346,8 +1346,6 @@ main { container: page / inline-size; }
   .side-tab-label, .side-tab-key,
   .side-nav:hover :is(.side-tab-label, .side-tab-key) { display: none; }
   .side-nav-user { margin: 0; padding: 0 0 0 6px; border-top: 0; border-left: 1px solid rgba(225, 231, 255, 0.12); }
-  /* the user menu opens upward, from the right edge */
-  .side-nav-user .user-menu-pop { left: auto; right: 0; bottom: calc(100% + 10px); margin: 0; }
   /* room for the bottom bar */
   main { padding-bottom: 84px !important; }
   .toasts { right: 16px; bottom: 74px; }
@@ -1448,7 +1446,7 @@ main { container: page / inline-size; }
 .oracle-fab:hover .oracle-fab-label,
 .oracle-fab:focus-visible .oracle-fab-label { opacity: 1; }
 /* the panel opens just above the button; toasts move up so they don't cover it */
-.oracle { bottom: 106px; height: min(600px, calc(100vh - 140px)); }
+.oracle { bottom: 106px; height: min(600px, calc(var(--screen-h, 100vh) - 140px)); }
 .toasts { bottom: 108px; }
 
 @media (max-width: 640px) {
@@ -1456,7 +1454,7 @@ main { container: page / inline-size; }
   .oracle-fab { right: 12px; bottom: 70px; width: 60px; height: 60px; border-radius: 15px; }
   .oracle-fab .wizard { width: 44px; height: 44px; }
   .oracle-fab-label { display: none; }
-  .oracle { right: 12px; bottom: 140px; height: min(560px, calc(100vh - 220px)); }
+  .oracle { right: 12px; bottom: 140px; height: min(560px, calc(var(--screen-h, 100vh) - 220px)); }
   .toasts { bottom: 140px; }
 }
 

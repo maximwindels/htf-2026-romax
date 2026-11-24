@@ -47,7 +47,7 @@ function LoginPage() {
 
   return (
     // grid-ui: same "Curse of Achrona" theme as the dashboard (src/grid.css).
-    <div className="grid-ui flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="grid-ui flex min-h-[var(--screen-h)] items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <PixelCrystal size={64} />
