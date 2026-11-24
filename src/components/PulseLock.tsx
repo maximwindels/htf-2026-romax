@@ -15,6 +15,8 @@ type PulseLockProps = {
   hint?: ReactNode
   /** Focus the pad on mount (used in the anomaly dialog). */
   autoFocus?: boolean
+  /** Called on every miss, so the caller knows whether the win was flawless. */
+  onMiss?: () => void
 }
 
 const VIEW = 320
@@ -63,7 +65,7 @@ const NUMERALS = [
  * part of the zone is "great". Two hits in a row lock the timeline; the second turn is faster.
  * Pressing early, or letting the hand pass the zone, is a miss: combo reset and a small shake.
  */
-export function PulseLock({ onStabilize, onDone, doneLabel = 'Timeline locked', hint, autoFocus }: PulseLockProps) {
+export function PulseLock({ onStabilize, onDone, doneLabel = 'Timeline locked', hint, autoFocus, onMiss }: PulseLockProps) {
   const [stage, setStage] = useState<Stage>('playing')
   const [combo, setCombo] = useState(0)
   const [feedback, setFeedback] = useState<Feedback>(null)
@@ -119,6 +121,7 @@ export function PulseLock({ onStabilize, onDone, doneLabel = 'Timeline locked', 
   }
 
   function miss() {
+    onMiss?.()
     comboRef.current = 0
     offsetsRef.current = []
     setCombo(0)

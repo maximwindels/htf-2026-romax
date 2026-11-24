@@ -1,4 +1,5 @@
 import type { Anomaly, EarlyWarning, Forecast, GridNode, Latest, Metric, SeriesPoint, Stats, TroubleMode } from '#/lib/grid.ts';
+import type { GameRunMeta } from '#/lib/games.ts';
 import type { StabilizeProof } from '#/lib/stabilize.ts';
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
@@ -30,7 +31,8 @@ export const api = {
   anomalies: () => request<Anomaly[]>('/api/anomalies?limit=500'),
   stats: () => request<Stats>('/api/stats'),
   /** Critical anomalies need proof of a won mini-game (tune or pulse); the server checks it. */
-  ack: (id: number, proof?: StabilizeProof) => post<Anomaly>(`/api/anomalies/${id}/ack`, proof),
+  ack: (id: number, proof?: StabilizeProof, run?: GameRunMeta) =>
+    post<Anomaly>(`/api/anomalies/${id}/ack`, proof ? { ...proof, run } : undefined),
   glitch: (body: { nodeId?: string; metric?: Metric } = {}) => post('/api/sim/glitch', body),
   desync: () => post('/api/sim/desync'),
   ramp: (body: { nodeId?: string; metric?: Metric } = {}) => post('/api/sim/ramp', body),

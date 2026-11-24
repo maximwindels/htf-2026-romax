@@ -3,6 +3,8 @@ import { asc, count, desc, eq } from 'drizzle-orm'
 import { db } from '#/db/index.ts'
 import { echoes, glitchEvents, glitches, guardians } from '#/db/schema.ts'
 import { requireGuardian } from '#/lib/auth.server.ts'
+import { parseRunMeta, type GameRunMeta } from '#/lib/games.ts'
+import { recordRun } from '#/lib/games.server.ts'
 import { announce, assignee, logEvent } from '#/lib/glitches.server.ts'
 import { nextId } from '#/lib/ids.server.ts'
 import { describeProof, parseProof, verifyProof, type StabilizeProof } from '#/lib/stabilize.ts'
@@ -156,9 +158,10 @@ export const reportEcho = createServerFn({ method: 'POST' })
  * (the mini-game). The server re-checks the values, so the API can't be used to skip it.
  */
 export const stabilizeGlitch = createServerFn({ method: 'POST' })
-  .validator((data: { glitchId: string; proof: StabilizeProof }) => ({
+  .validator((data: { glitchId: string; proof: StabilizeProof; run?: GameRunMeta }) => ({
     glitchId: String(data?.glitchId),
     proof: parseProof(data?.proof),
+    run: parseRunMeta(data?.run),
   }))
   .handler(async ({ data }) => {
     const guardian = requireGuardian()
@@ -185,6 +188,8 @@ export const stabilizeGlitch = createServerFn({ method: 'POST' })
         })
         .run()
     })
+    // A won mini-game: leaderboard, and a flawless one makes the grid more immune.
+    recordRun(guardian, { game: proof.kind, result: 'win', target: data.glitchId, ...data.run })
     announce(data.glitchId)
   })
 

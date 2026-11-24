@@ -10,6 +10,7 @@ export const SHORTCUTS: { group: string; items: { keys: string[]; label: string;
       { keys: ['N'], label: 'Report a new echo' },
       { keys: ['G', 'O'], label: 'Go to overview' },
       { keys: ['G', 'A'], label: 'Go to anomalies' },
+      { keys: ['G', 'L'], label: 'Go to the leaderboard' },
       { keys: ['G', 'G'], label: 'Go to guardians', commanderOnly: true },
     ],
   },

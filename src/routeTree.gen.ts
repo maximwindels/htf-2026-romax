@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAnomaliesRouteImport } from './routes/_app/anomalies'
 import { Route as AppGuardiansRouteImport } from './routes/_app/guardians'
+import { Route as AppLeaderboardRouteImport } from './routes/_app/leaderboard'
 import { Route as ApiAnomaliesRouteImport } from './routes/api/anomalies'
 import { Route as ApiForecastsRouteImport } from './routes/api/forecasts'
 import { Route as ApiLatestRouteImport } from './routes/api/latest'
@@ -50,6 +51,11 @@ const AppAnomaliesRoute = AppAnomaliesRouteImport.update({
 const AppGuardiansRoute = AppGuardiansRouteImport.update({
   id: '/guardians',
   path: '/guardians',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLeaderboardRoute = AppLeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiAnomaliesRoute = ApiAnomaliesRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/anomalies': typeof AppAnomaliesRoute
   '/guardians': typeof AppGuardiansRoute
+  '/leaderboard': typeof AppLeaderboardRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/anomalies': typeof AppAnomaliesRoute
   '/guardians': typeof AppGuardiansRoute
+  '/leaderboard': typeof AppLeaderboardRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/anomalies': typeof AppAnomaliesRoute
   '/_app/guardians': typeof AppGuardiansRoute
+  '/_app/leaderboard': typeof AppLeaderboardRoute
   '/api/anomalies': typeof ApiAnomaliesRouteWithChildren
   '/api/forecasts': typeof ApiForecastsRoute
   '/api/latest': typeof ApiLatestRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/anomalies'
     | '/guardians'
+    | '/leaderboard'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/anomalies'
     | '/guardians'
+    | '/leaderboard'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_app/anomalies'
     | '/_app/guardians'
+    | '/_app/leaderboard'
     | '/api/anomalies'
     | '/api/forecasts'
     | '/api/latest'
@@ -288,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/guardians'
       fullPath: '/guardians'
       preLoaderRoute: typeof AppGuardiansRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/leaderboard': {
+      id: '/_app/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof AppLeaderboardRouteImport
       parentRoute: typeof AppRoute
     }
     '/api/anomalies': {
@@ -387,6 +406,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAnomaliesRoute: typeof AppAnomaliesRoute
   AppGuardiansRoute: typeof AppGuardiansRoute
+  AppLeaderboardRoute: typeof AppLeaderboardRoute
   AppIndexRoute: typeof AppIndexRoute
   AppGlitchesGlitchIdRoute: typeof AppGlitchesGlitchIdRoute
   AppNodesNodeIdRoute: typeof AppNodesNodeIdRoute
@@ -395,6 +415,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAnomaliesRoute: AppAnomaliesRoute,
   AppGuardiansRoute: AppGuardiansRoute,
+  AppLeaderboardRoute: AppLeaderboardRoute,
   AppIndexRoute: AppIndexRoute,
   AppGlitchesGlitchIdRoute: AppGlitchesGlitchIdRoute,
   AppNodesNodeIdRoute: AppNodesNodeIdRoute,

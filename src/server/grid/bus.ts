@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events'
+import type { DesyncModifiers, GameResult } from '#/lib/games.ts'
 import type { Glitch } from '#/lib/glitch.ts'
 import type { Anomaly, EarlyWarning, Tick, TroubleMode } from '#/lib/grid.ts'
 
@@ -14,6 +15,10 @@ interface BusEvents {
   mode: [TroubleMode]
   /** Testing: every open anomaly was acknowledged at once. */
   cleared: [{ count: number }]
+  /** Desync Immunity / backlash changed after a mini-game result. */
+  modifiers: [DesyncModifiers]
+  /** A mini-game attempt ended (won or failed): the leaderboard changed. */
+  run: [{ guardianId: string; result: GameResult; flawless: boolean }]
 }
 
 /**

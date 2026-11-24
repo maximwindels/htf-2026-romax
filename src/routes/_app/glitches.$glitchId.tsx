@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, createFileRoute, notFound, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, ArrowRight, LoaderCircle, ShieldCheck, Trash2, UserRound } from 'lucide-react'
 import { EchoForm } from '#/components/EchoForm.tsx'
+import { AetherBadge } from '#/components/AetherBadge.tsx'
 import { StabilizeGame } from '#/components/StabilizeGame.tsx'
 import { StatusBadge } from '#/components/StatusBadge.tsx'
 import { StatusStepper } from '#/components/StatusStepper.tsx'
@@ -93,7 +94,7 @@ function GlitchPage() {
       {glitch.status === 'CONTAINING' && (
         <StabilizeGame
           seed={glitch.glitchId}
-          onStabilize={(proof) => stabilizeGlitch({ data: { glitchId: glitch.glitchId, proof } })}
+          onStabilize={(proof, run) => stabilizeGlitch({ data: { glitchId: glitch.glitchId, proof, run } })}
           onDone={() => router.invalidate()}
           doneLabel="Stabilized · glitch fixed"
           hints={{
@@ -177,7 +178,10 @@ function EchoItem({ echo, opened }: { echo: Echo; opened: boolean }) {
         className={`absolute top-1.5 -left-[31px] size-3 rounded-full border-2 border-app ${opened ? 'bg-red-500' : 'bg-accent'}`}
       />
       <div className="flex flex-wrap items-baseline gap-x-2 text-sm">
-        <span className="font-semibold text-fg">{echo.reporter}</span>
+        <span className="inline-flex items-center gap-1.5 font-semibold text-fg">
+          {echo.reporter}
+          <AetherBadge guardianId={echo.reportingGuardianId} />
+        </span>
         <span className="text-muted">
           {opened ? 'reported the glitch' : 'sent an update'} · <Time iso={echo.timestamp} />
         </span>

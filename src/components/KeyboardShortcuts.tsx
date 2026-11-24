@@ -42,6 +42,7 @@ export function KeyboardShortcuts({ guardian }: { guardian: Guardian }) {
         chordUntil = 0
         if (key === 'o') return run(() => router.navigate({ to: '/' }))
         if (key === 'a') return run(() => router.navigate({ to: '/anomalies' }))
+        if (key === 'l') return run(() => router.navigate({ to: '/leaderboard' }))
         if (key === 'g' && isCommander(guardian)) return run(() => router.navigate({ to: '/guardians' }))
         return
       }

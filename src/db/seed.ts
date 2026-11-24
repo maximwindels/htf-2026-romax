@@ -1,5 +1,5 @@
 import { db } from './index.ts'
-import { echoes, glitchEvents, glitches, guardians, sessions } from './schema.ts'
+import { echoes, gameRuns, glitchEvents, glitches, guardians, sessions } from './schema.ts'
 import { hashPassword } from '../lib/password.ts'
 
 const glitchRows: (typeof glitches.$inferInsert)[] = [
@@ -41,6 +41,7 @@ const eventRows: (typeof glitchEvents.$inferInsert)[] = [
 // Wipe and refill so the seed can be re-run safely. Children first, for foreign keys.
 db.transaction((tx) => {
   tx.delete(sessions).run()
+  tx.delete(gameRuns).run() // the leaderboard starts empty
   tx.delete(glitchEvents).run()
   tx.delete(echoes).run()
   tx.delete(guardians).run()

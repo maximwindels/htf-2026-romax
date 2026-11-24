@@ -34,6 +34,17 @@ export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync:
           <span className={`desync-level level-${desync.level}`}>
             LVL {desync.level} · {DESYNC_LEVELS[desync.level].name}
           </span>
+          {/* Mini-game results: immunity from flawless wins, backlash from fails. */}
+          {desync.multiplier < 1 && (
+            <span className="desync-chip is-immune" title="Desync Immunity from flawless stabilizations: every error drains less magic">
+              Immune {Math.round((1 - desync.multiplier) * 100)}%
+            </span>
+          )}
+          {desync.backlash > 0 && (
+            <span className="desync-chip is-backlash" title="A failed mini-game: extra corruption, fading out">
+              Backlash +{desync.backlash}%
+            </span>
+          )}
         </div>
         {/* Downloads the High Council PDF (Content-Disposition: attachment, so the page stays open). */}
         <a className="btn-report" href="/api/report" title="Export the most important data as a PDF for the High Council">

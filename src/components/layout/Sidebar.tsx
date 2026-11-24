@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
-import { Activity, LayoutGrid, LogOut, TriangleAlert, Users, type LucideIcon } from 'lucide-react'
+import { Activity, LayoutGrid, LogOut, TriangleAlert, Trophy, Users, type LucideIcon } from 'lucide-react'
+import { AetherBadge } from '#/components/AetherBadge.tsx'
 import { RoleBadge } from '#/components/RoleBadge.tsx'
 import { logout } from '#/lib/auth.functions.ts'
 import { isCommander, type Guardian } from '#/lib/guardian.ts'
@@ -8,7 +9,7 @@ import { isCommander, type Guardian } from '#/lib/guardian.ts'
 type NavItem = {
   label: string
   icon: LucideIcon
-  to: '/' | '/anomalies' | '/guardians'
+  to: '/' | '/anomalies' | '/leaderboard' | '/guardians'
   /** Hidden for defenders. */
   commanderOnly?: boolean
 }
@@ -16,6 +17,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: 'Overview', icon: LayoutGrid, to: '/' },
   { label: 'Anomalies', icon: TriangleAlert, to: '/anomalies' },
+  { label: 'Leaderboard', icon: Trophy, to: '/leaderboard' },
   { label: 'Guardians', icon: Users, to: '/guardians', commanderOnly: true },
 ]
 
@@ -88,16 +90,23 @@ function UserMenu({ guardian }: { guardian: Guardian }) {
         aria-expanded={open}
         title={guardian.codename}
         onClick={() => setOpen((o) => !o)}
-        className="flex size-10 items-center justify-center rounded-full border border-line bg-card text-sm font-semibold text-fg transition-colors hover:bg-subtle"
+        className="relative flex size-10 items-center justify-center rounded-full border border-line bg-card text-sm font-semibold text-fg transition-colors hover:bg-subtle"
       >
         {guardian.codename.slice(0, 1).toUpperCase()}
+        {/* Aether Charges, pinned to the avatar */}
+        <span className="absolute -top-2 -right-3">
+          <AetherBadge guardianId={guardian.guardianId} />
+        </span>
       </button>
 
       {open && (
         <div className="absolute bottom-0 left-full z-20 ml-3 w-56 rounded-2xl border border-line bg-card p-2 shadow-xl shadow-black/10">
           <div className="flex flex-col gap-2 px-3 py-2">
             <span className="text-xs text-muted">Logged in as</span>
-            <span className="font-semibold text-fg">{guardian.codename}</span>
+            <span className="inline-flex items-center gap-2 font-semibold text-fg">
+              {guardian.codename}
+              <AetherBadge guardianId={guardian.guardianId} />
+            </span>
             <span>
               <RoleBadge role={guardian.role} />
             </span>

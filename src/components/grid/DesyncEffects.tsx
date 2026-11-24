@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSoundOn } from '#/dashboard/alerts';
 import { DESYNC_LEVELS, setDesyncLevel, type DesyncState } from '#/dashboard/desync';
-import { playStabilized, setHum } from '#/dashboard/sound';
+import { playStabilized, playStinger, setHum } from '#/dashboard/sound';
 
 /**
  * Applies The Desync to the whole app: sets <html data-desync="0-3"> for the CSS corruption,
@@ -36,6 +36,28 @@ export function DesyncEffects({ state }: { state: DesyncState }) {
     const timer = setTimeout(() => setBanner(null), 2600);
     return () => clearTimeout(timer);
   }, [level]);
+
+  // Mini-game results, seen by everyone: a fail makes the Desync strike back, a flawless win
+  // makes the grid more immune. Only changes after the page has loaded count (not the first fetch).
+  const prevBacklash = useRef(state.backlashCount);
+  const prevMultiplier = useRef(state.multiplier);
+  useEffect(() => {
+    const struck = state.backlashCount > prevBacklash.current;
+    const immune = state.multiplier < prevMultiplier.current;
+    prevBacklash.current = state.backlashCount;
+    prevMultiplier.current = state.multiplier;
+    if (performance.now() - mountedAt.current < 4000 || (!struck && !immune)) return;
+    if (struck) playStinger();
+    setBanner({
+      key: Date.now(),
+      worse: struck,
+      text: struck
+        ? 'The Desync strikes back · corruption +15 %'
+        : `Aether Charge · the grid is now ${Math.round((1 - state.multiplier) * 100)} % immune`,
+    });
+    const timer = setTimeout(() => setBanner(null), 2600);
+    return () => clearTimeout(timer);
+  }, [state.backlashCount, state.multiplier]);
 
   // Clean up when leaving the app (e.g. logging out to the login page).
   useEffect(

@@ -1,6 +1,7 @@
 import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 // Relative imports: drizzle-kit loads this file and doesn't resolve the `#/` alias.
 import { GLITCH_EVENT_KINDS, GLITCH_STATUSES } from '../lib/glitch.ts'
+import { GAME_KINDS, GAME_RESULTS } from '../lib/games.ts'
 import { GUARDIAN_ROLES } from '../lib/guardian.ts'
 import { METRICS, SEVERITIES } from '../lib/grid.ts'
 
@@ -50,6 +51,22 @@ export const glitchEvents = sqliteTable('glitch_events', {
   guardianId: text('guardian_id')
     .notNull()
     .references(() => guardians.guardianId),
+  /** ISO 8601 */
+  timestamp: text('timestamp').notNull(),
+})
+
+/** Every mini-game attempt that ended: won (stabilized) or failed (time ran out). Feeds the leaderboard. */
+export const gameRuns = sqliteTable('game_runs', {
+  runId: integer('run_id').primaryKey({ autoIncrement: true }),
+  guardianId: text('guardian_id')
+    .notNull()
+    .references(() => guardians.guardianId, { onDelete: 'cascade' }),
+  game: text('game', { enum: GAME_KINDS }).notNull(),
+  result: text('result', { enum: GAME_RESULTS }).notNull(),
+  flawless: integer('flawless', { mode: 'boolean' }).notNull(),
+  durationMs: integer('duration_ms').notNull(),
+  /** What was being stabilized: a glitch id, or an anomaly seed like AN-12. */
+  target: text('target').notNull(),
   /** ISO 8601 */
   timestamp: text('timestamp').notNull(),
 })

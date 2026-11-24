@@ -742,3 +742,57 @@ html[data-magic='broken'] .magic-bar { border-color: var(--sev-critical); }
   60% { transform: translateX(-3px); }
   80% { transform: translateX(2px); }
 }
+
+/* ---------- mini-game timer, result, Desync Immunity (StabilizeGame.tsx, TopBar) ---------- */
+.game-timer { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.game-timer-bar { flex: 1; height: 10px; background: var(--bg); border: 1px solid var(--line); }
+.game-timer-bar span {
+  display: block; height: 100%;
+  background: repeating-linear-gradient(90deg, var(--ok) 0 8px, transparent 8px 10px);
+  transition: width 0.1s linear;
+}
+.game-timer-text { font-size: 14px; min-width: 52px; text-align: right; color: var(--text); }
+.game-timer.is-urgent { color: var(--sev-critical); }
+.game-timer.is-urgent .game-timer-bar span { background: repeating-linear-gradient(90deg, var(--sev-critical) 0 8px, transparent 8px 10px); }
+.game-timer.is-urgent .game-timer-text { color: var(--sev-critical); animation: blink 0.5s steps(1) infinite; }
+.stabilizer.game-failed { border-top-color: var(--sev-critical); }
+.game-result { display: flex; align-items: center; gap: 8px; margin: 0; font: 700 15px/1.3 var(--font-caps); letter-spacing: 0.04em; color: var(--ok); }
+.game-result.is-flawless { color: var(--pink); }
+
+.aether-badge {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 1px 5px 1px 3px;
+  font: 700 11px/1.2 var(--font-label);
+  color: #160f1f;
+  background: linear-gradient(180deg, #ffe08a, #e69e41);
+  border: 1px solid #7a4a12;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.desync-chip {
+  font: 700 11px/1 var(--font-label); letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 6px; border: 2px solid currentColor; white-space: nowrap;
+}
+.desync-chip.is-immune { color: var(--ok); }
+.desync-chip.is-backlash { color: var(--sev-critical); }
+
+/* ---------- leaderboard (routes/_app/leaderboard.tsx) ---------- */
+.leaderboard-rules { max-width: 420px; margin: 0; }
+.leaderboard-rules b { color: var(--text); }
+.podium { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 8px; }
+.podium-card { display: flex; flex-direction: column; gap: 6px; border-top: 4px solid var(--line); }
+.podium-card.place-1 { border-top-color: #e6c341; }
+.podium-card.place-2 { border-top-color: #c6cbd8; }
+.podium-card.place-3 { border-top-color: #c57a3e; }
+.podium-card.is-me { outline: 2px solid var(--pink); outline-offset: 2px; }
+.podium-place { display: flex; align-items: center; gap: 6px; font: 700 15px/1 var(--font-caps); color: var(--orange); }
+.place-1 .podium-place { color: #e6c341; }
+.podium-name { display: flex; align-items: center; gap: 8px; font: 400 28px/1.1 var(--font-display); }
+.podium-points { font: 700 36px/1 var(--font-label); }
+.leaderboard tr.is-me td { background: var(--panel-2); }
+.runs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.run { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; background: var(--panel-2); border-left: 4px solid var(--ok); border-radius: 0 10px 10px 0; }
+.run.run-fail { border-left-color: var(--sev-critical); }
+.run.is-flawless { border-left-color: var(--pink); }
+.run-tag { display: inline-flex; align-items: center; gap: 3px; font: 700 11px/1 var(--font-label); letter-spacing: 0.1em; text-transform: uppercase; color: var(--pink); }
+.run-time { margin-left: auto; }

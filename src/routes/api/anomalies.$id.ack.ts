@@ -1,4 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { getSessionGuardian } from '#/lib/auth.server.ts'
+import { parseRunMeta } from '#/lib/games.ts'
+import { recordRun } from '#/lib/games.server.ts'
 import { anomalySeed, parseProof, verifyProof } from '#/lib/stabilize.ts'
 import { denyUnless } from '#/server/grid/http.ts'
 import { acknowledgeIncident, getAnomaly } from '#/server/grid/queries.ts'
@@ -23,13 +26,19 @@ export const Route = createFileRoute('/api/anomalies/$id/ack')({
         if (existing.acknowledgedAt) return Response.json(existing)
 
         if (existing.severity === 'critical') {
-          // Proof of a won mini-game: a tuned signal or two pulse hits (see lib/stabilize.ts).
-          const proof = parseProof(await request.json().catch(() => null))
-          if (!verifyProof(anomalySeed(id), proof)) {
+          // Proof of a won mini-game: a tuned signal or two pulse hits (see lib/stabilize.ts),
+          // plus `run` (time taken, flawless) for the leaderboard.
+          const body = (await request.json().catch(() => null)) as Record<string, unknown> | null
+          const proof = parseProof(body)
+          if (!proof || !verifyProof(anomalySeed(id), proof)) {
             return Response.json(
               { error: 'Critical anomalies must be stabilized, not just acknowledged' },
               { status: 409 },
             )
+          }
+          const guardian = getSessionGuardian()
+          if (guardian) {
+            recordRun(guardian, { game: proof.kind, result: 'win', target: anomalySeed(id), ...parseRunMeta(body?.run) })
           }
         }
 

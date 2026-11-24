@@ -15,7 +15,9 @@ import {
   type Tick,
   type TroubleMode,
 } from '#/lib/grid.ts';
+import type { DesyncModifiers } from '#/lib/games.ts';
 import { notify, notifyWarning } from './alerts';
+import { gamesQk } from './games';
 import { SERIES_MINUTES, qk } from './api';
 
 export type LiveStatus = 'connecting' | 'live' | 'offline';
@@ -57,6 +59,9 @@ export function useLiveStream(): LiveStatus {
     on('glitch', () => router.invalidate());
     // A commander switched calm / normal / chaos: every dashboard shows the new mode.
     on<TroubleMode>('mode', (mode) => queryClient.setQueryData(qk.simMode, { mode }));
+    // Mini-game results: immunity / backlash for the corruption, and the leaderboard.
+    on<DesyncModifiers>('modifiers', (mods) => queryClient.setQueryData(gamesQk.modifiers, mods));
+    on('run', () => queryClient.invalidateQueries({ queryKey: gamesQk.leaderboard }));
     // Testing "clear all": too many rows to patch one by one, so refetch the lists.
     on('cleared', () => {
       queryClient.invalidateQueries({ queryKey: qk.anomalies });

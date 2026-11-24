@@ -1,4 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
+import { backlashAt } from '#/lib/games.ts';
+import { useDesyncModifiers } from './games';
 import { useAnomalies, useNow } from './hooks';
 
 /**
@@ -31,6 +33,12 @@ export interface DesyncState {
   level: DesyncLevel;
   /** Magic stability in % (100 = no errors), for the meter and the hum. */
   magic: number;
+  /** Corruption per error after Desync Immunity (1 = none, 0.5 = best). */
+  multiplier: number;
+  /** Corruption % still left from failed mini-games (fades out). */
+  backlash: number;
+  /** How many backlashes are active (to notice a new one). */
+  backlashCount: number;
 }
 
 export function levelFor(errors: number): DesyncLevel {
@@ -40,8 +48,13 @@ export function levelFor(errors: number): DesyncLevel {
   return 0;
 }
 
+/**
+ * Open errors -> level and magic. Mini-game results shift it (lib/games.ts):
+ * Desync Immunity scales the corruption per error down, a backlash adds corruption on top.
+ */
 export function useDesync(): DesyncState {
   const { data: anomalies = [] } = useAnomalies();
+  const mods = useDesyncModifiers();
   const now = useNow(2000);
 
   return useMemo(() => {
@@ -54,12 +67,19 @@ export function useDesync(): DesyncState {
     }
     let errors = 0;
     for (const critical of incidents.values()) errors += critical ? 2 : 1;
+
+    const backlash = backlashAt(mods, now);
+    // Effective error points: immunity makes each error weigh less, backlash weighs in on its own.
+    const effective = errors * mods.multiplier + backlash / MAGIC_PER_ERROR;
     return {
       errors,
-      level: levelFor(errors),
-      magic: Math.max(0, 100 - errors * MAGIC_PER_ERROR),
+      level: levelFor(effective),
+      magic: Math.round(Math.max(0, 100 - effective * MAGIC_PER_ERROR)),
+      multiplier: mods.multiplier,
+      backlash: Math.round(backlash),
+      backlashCount: mods.backlash.length,
     };
-  }, [anomalies, now]);
+  }, [anomalies, mods, now]);
 }
 
 // Small store so any component (e.g. a KPI value) can read the level without prop drilling.

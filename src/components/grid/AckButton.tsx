@@ -75,7 +75,7 @@ function StabilizeDialog({ anomaly, onClose }: { anomaly: Anomaly; onClose: () =
             ),
           }}
           doneLabel={`${anomaly.nodeId} stabilized`}
-          onStabilize={async (proof) => store(await api.ack(anomaly.id, proof))}
+          onStabilize={async (proof, run) => store(await api.ack(anomaly.id, proof, run))}
           onDone={onClose}
         />
       </div>

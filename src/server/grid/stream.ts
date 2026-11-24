@@ -5,7 +5,7 @@
 import { bus } from './bus'
 
 /** The bus events that are forwarded to browsers. */
-const FORWARDED_EVENTS = ['tick', 'anomaly', 'ack', 'warning', 'warning-confirmed', 'glitch', 'mode', 'cleared'] as const
+const FORWARDED_EVENTS = ['tick', 'anomaly', 'ack', 'warning', 'warning-confirmed', 'glitch', 'mode', 'cleared', 'modifiers', 'run'] as const
 const PING_EVERY_MS = 15_000
 
 export function liveStream(request: Request): Response {

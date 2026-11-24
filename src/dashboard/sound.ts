@@ -116,3 +116,53 @@ export function playStabilized() {
     osc.stop(start + 0.75);
   });
 }
+
+// ---------- glitch stinger ----------
+
+/**
+ * The Desync strikes back: a heavy, distorted hit. A burst of filtered noise sweeping down,
+ * over a detuned saw that drops in pitch. About 0.9 s.
+ */
+export function playStinger() {
+  if (!isSoundOn()) return;
+  const audio = audioContext();
+  if (!audio) return;
+  const t = audio.currentTime;
+
+  const out = audio.createGain();
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(0.16, t + 0.02);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+  out.connect(audio.destination);
+
+  // Noise burst through a low-pass that closes fast: the "crunch".
+  const length = Math.floor(audio.sampleRate * 0.9);
+  const buffer = audio.createBuffer(1, length, audio.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let i = 0; i < length; i++) samples[i] = Math.random() * 2 - 1;
+  const noise = audio.createBufferSource();
+  noise.buffer = buffer;
+  const lowpass = audio.createBiquadFilter();
+  lowpass.type = 'lowpass';
+  lowpass.frequency.setValueAtTime(4000, t);
+  lowpass.frequency.exponentialRampToValueAtTime(120, t + 0.7);
+  const noiseGain = audio.createGain();
+  noiseGain.gain.value = 0.6;
+  noise.connect(lowpass).connect(noiseGain).connect(out);
+
+  // Two detuned saws dropping an octave and a half: the "weight".
+  for (const detune of [-25, 25]) {
+    const saw = audio.createOscillator();
+    saw.type = 'sawtooth';
+    saw.detune.value = detune;
+    saw.frequency.setValueAtTime(110, t);
+    saw.frequency.exponentialRampToValueAtTime(38, t + 0.8);
+    const g = audio.createGain();
+    g.gain.value = 0.35;
+    saw.connect(g).connect(out);
+    saw.start(t);
+    saw.stop(t + 0.9);
+  }
+  noise.start(t);
+  noise.stop(t + 0.9);
+}
