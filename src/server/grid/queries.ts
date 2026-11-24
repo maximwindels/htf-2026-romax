@@ -56,6 +56,37 @@ export function listAnomalies(limit: number, onlyOpen: boolean): Anomaly[] {
     .all()
 }
 
+/**
+ * Acknowledge every open anomaly of one node + metric: one glitch fires an anomaly per tick, so a
+ * stabilized critical clears the whole incident, not one tick of it. Each row emits an `ack` event.
+ */
+export function acknowledgeIncident(nodeId: string, metric: Metric): Anomaly[] {
+  const rows = db
+    .update(anomalies)
+    .set({ acknowledgedAt: new Date().toISOString() })
+    .where(and(eq(anomalies.nodeId, nodeId), eq(anomalies.metric, metric), isNull(anomalies.acknowledgedAt)))
+    .returning()
+    .all()
+  for (const row of rows) bus.emit('ack', row)
+  return rows
+}
+
+/** Testing only: acknowledge every open anomaly at once. Emits one `cleared` event, not one per row. */
+export function acknowledgeAllOpen(): number {
+  const rows = db
+    .update(anomalies)
+    .set({ acknowledgedAt: new Date().toISOString() })
+    .where(isNull(anomalies.acknowledgedAt))
+    .returning({ id: anomalies.id })
+    .all()
+  bus.emit('cleared', { count: rows.length })
+  return rows.length
+}
+
+export function getAnomaly(id: number): Anomaly | undefined {
+  return db.select().from(anomalies).where(eq(anomalies.id, id)).get()
+}
+
 /** Acknowledge an anomaly and tell every other open dashboard. Returns undefined when the id is unknown. */
 export function acknowledge(id: number): Anomaly | undefined {
   const anomaly = db

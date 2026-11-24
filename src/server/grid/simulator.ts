@@ -4,7 +4,7 @@
  * Tomorrow: replace `generateReadings()` with the real feed (their API, socket or database)
  * and keep calling `ingest()`. Nothing else has to change.
  */
-import { METRICS, type Metric, type Reading } from '#/lib/grid.ts';
+import { METRICS, type Metric, type Reading, type TroubleMode } from '#/lib/grid.ts';
 import { gaussianNoise, randomInt, randomItem } from './helpers';
 import { ingest } from './ingest';
 import { NODES } from './nodes';
@@ -47,7 +47,11 @@ interface Disturbance {
   growPerTick: number;
   ticksAtTarget: number;
 }
-const disturbances: Disturbance[] = [];
+// Shared state lives on globalThis. In dev, a hot reload makes a fresh copy of this module while the
+// running loop (started by runtime.ts) keeps the old one: with a module-level array, the demo buttons
+// pushed into the new copy and the loop never saw them.
+const g = globalThis as typeof globalThis & { __gridDisturbances?: Disturbance[]; __troubleMode?: TroubleMode };
+const disturbances: Disturbance[] = (g.__gridDisturbances ??= []);
 
 const GLITCH_SIZE: Record<Metric, () => number> = {
   load: () => (Math.random() < 0.5 ? -50 : 40),
@@ -120,11 +124,30 @@ function generateReadings(ts: Date): Reading[] {
   return readings;
 }
 
+/** Stops every running glitch, build-up and Desync wave at once (the "clear all" test button). */
+export function clearDisturbances() {
+  disturbances.length = 0;
+}
+
+// ---------- trouble mode ----------
+
+/** Multiplier on the random-trouble chances below. */
+const TROUBLE_RATE: Record<TroubleMode, number> = { calm: 0, normal: 1, chaos: 4 };
+
+// On globalThis (see `g` above), so a hot reload in dev keeps the chosen mode.
+g.__troubleMode ??= 'normal';
+
+export const getTroubleMode = (): TroubleMode => g.__troubleMode ?? 'normal';
+export function setTroubleMode(mode: TroubleMode) {
+  g.__troubleMode = mode;
+}
+
 /** Random trouble per second, so the dashboard has something to show without clicking. */
 function maybeStartRandomTrouble() {
-  if (Math.random() < 0.012) injectGlitch();
-  if (Math.random() < 0.0015) injectDesyncWave();
-  if (Math.random() < 0.004) injectRamp();
+  const rate = TROUBLE_RATE[getTroubleMode()];
+  if (Math.random() < 0.012 * rate) injectGlitch();
+  if (Math.random() < 0.0015 * rate) injectDesyncWave();
+  if (Math.random() < 0.004 * rate) injectRamp();
 }
 
 /** Starts the 1-second loop. Returns the timer so the runtime can stop it on a hot reload. */

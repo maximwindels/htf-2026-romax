@@ -1,6 +1,7 @@
 import type { Anomaly } from '#/lib/grid.ts';
 import { ago } from '#/dashboard/format';
-import { useAck, useNow } from '#/dashboard/hooks';
+import { useNow } from '#/dashboard/hooks';
+import { AckButton } from './AckButton';
 import { NodeLink } from './NodeLink';
 import { SeverityBadge } from './SeverityBadge';
 
@@ -10,9 +11,8 @@ export interface AlertFeedProps {
   limit?: number;
 }
 
-/** List of open (not yet acknowledged) alerts, newest first, with an Acknowledge button. */
+/** List of open (not yet acknowledged) alerts, newest first. Critical ones must be stabilized (AckButton). */
 export function AlertFeed({ anomalies, limit = 12 }: AlertFeedProps) {
-  const ack = useAck();
   const now = useNow(5000);
   const open = anomalies.filter((a) => !a.acknowledgedAt);
   const shown = open.slice(0, limit);
@@ -34,9 +34,7 @@ export function AlertFeed({ anomalies, limit = 12 }: AlertFeedProps) {
               <span className="muted small">{ago(a.ts, now)}</span>
             </div>
             <div className="feed-msg">{a.message}</div>
-            <button className="btn-small" disabled={ack.isPending} onClick={() => ack.mutate(a.id)}>
-              Acknowledge
-            </button>
+            <AckButton anomaly={a} />
           </li>
         ))}
       </ul>

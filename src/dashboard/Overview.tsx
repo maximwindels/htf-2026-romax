@@ -8,6 +8,7 @@ import { Kpi } from "#/components/grid/Kpi";
 import { MetricChart } from "#/components/grid/MetricChart";
 import { NetworkMap } from "#/components/grid/NetworkMap";
 import { NodeGrid } from "#/components/grid/NodeGrid";
+import { TroubleControls } from "#/components/grid/TroubleControls";
 import { fmtUnit } from "./format";
 import {
   useAnomalies,
@@ -108,6 +109,7 @@ export function OverviewPage() {
           <button className="danger" onClick={() => desync.mutate()}>
             Trigger Desync wave
           </button>
+          <TroubleControls />
         </div>
         )}
       </div>

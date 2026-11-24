@@ -4,6 +4,7 @@ import { db } from '#/db/index.ts'
 import { echoes, glitches, guardians } from '#/db/schema.ts'
 import { requireGuardian } from '#/lib/auth.server.ts'
 import { nextId } from '#/lib/ids.server.ts'
+import { isInTune, targetSignal } from '#/lib/stabilize.ts'
 import {
   GLITCH_STATUSES,
   MAX_DESCRIPTION_LENGTH,
@@ -63,7 +64,16 @@ export const getGlitch = createServerFn({ method: 'GET' })
       .orderBy(asc(echoes.timestamp))
       .all()
 
-    return { ...glitch, echoes: rows }
+    // Same order as the overview list, so J/K on the page matches J/K in the list.
+    const order = db
+      .select({ id: glitches.glitchId })
+      .from(glitches)
+      .orderBy(desc(glitches.timestamp))
+      .all()
+      .map((g) => g.id)
+    const i = order.indexOf(glitchId)
+
+    return { ...glitch, echoes: rows, newerId: order[i - 1] ?? null, olderId: order[i + 1] ?? null }
   })
 
 /**
@@ -102,6 +112,42 @@ export const reportEcho = createServerFn({ method: 'POST' })
         })
         .run()
       return { glitchId, echoId }
+    })
+  })
+
+/**
+ * Any guardian can close a CONTAINING glitch, but only by tuning into its signal
+ * (the mini-game). The server re-checks the values, so the API can't be used to skip it.
+ */
+export const stabilizeGlitch = createServerFn({ method: 'POST' })
+  .validator((data: { glitchId: string; frequency: number; phase: number }) => ({
+    glitchId: String(data?.glitchId),
+    frequency: Number(data?.frequency),
+    phase: Number(data?.phase),
+  }))
+  .handler(async ({ data }) => {
+    const guardian = requireGuardian()
+    const signal = { frequency: data.frequency, phase: data.phase }
+    if (!isInTune(signal, targetSignal(data.glitchId))) {
+      throw new Error('Signal not stable yet, keep tuning')
+    }
+
+    db.transaction((tx) => {
+      const glitch = tx.select().from(glitches).where(eq(glitches.glitchId, data.glitchId)).get()
+      if (!glitch) throw new Error(`Glitch ${data.glitchId} no longer exists`)
+      if (glitch.status !== 'CONTAINING') {
+        throw new Error('Only glitches that are being contained can be stabilized')
+      }
+      tx.update(glitches).set({ status: 'FIXED' }).where(eq(glitches.glitchId, data.glitchId)).run()
+      tx.insert(echoes)
+        .values({
+          echoId: nextId(tx, 'EC'),
+          glitchId: data.glitchId,
+          description: `Stabilized the frequency at ${data.frequency.toFixed(2)} Hz, phase ${Math.round(data.phase)}°. Glitch fixed.`,
+          timestamp: new Date().toISOString(),
+          reportingGuardianId: guardian.guardianId,
+        })
+        .run()
     })
   })
 

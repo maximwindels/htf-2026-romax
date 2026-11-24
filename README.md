@@ -126,6 +126,20 @@ Every page except `/login` needs a logged-in guardian (Maxim's session login, `s
 - **Predictive glitches:** critical anomalies open a glitch (status `LEAKED`, marked `[auto]`) in the starter's glitch list. A Desync wave becomes one glitch. New glitches appear live.
 - **Live updates:** one Server-Sent Events stream (`/api/stream`) writes every event into the TanStack Query cache.
 - **Theme:** HTF 2026 "Curse of Achrona". The starter's Tailwind tokens in `src/styles.css` are mapped to the theme colours; dashboard styles are in `src/grid.css`.
+- **Light / dark mode:** dark is the default; toggle with the sun/moon button in the top bar or <kbd>T</kbd>. The choice is stored in `localStorage` and applied before the first paint (`src/lib/theme.ts`). Light tokens are at the bottom of `src/styles.css`; Tailwind's `dark:` variant follows the toggle.
+- **Stabilizer mini-game:** a glitch in `CONTAINING` can only be fixed by tuning frequency and phase onto its signal and holding it for 2 seconds. Sliders snap onto the target when close. The server re-checks the values (`src/lib/stabilize.ts`, `src/components/Stabilizer.tsx`).
+- **Critical = stabilize, not acknowledge:** medium/high alerts have a normal Acknowledge; critical ones show **Stabilize**, which opens the mini-game for that anomaly. The API refuses a plain ack on a critical (409). Acknowledging or stabilizing clears the whole incident (every open alert of that node + metric). See `src/components/grid/AckButton.tsx`.
+- **The Desync corrupts the UI, in levels by the number of open errors:** an error is an open incident (one node + metric, last 5 min); critical ones count double. The top bar shows the Magic meter and the level, and a banner flashes when the level changes (`src/dashboard/desync.ts`, bottom of `src/grid.css`).
+
+  | Level | Open errors | What happens |
+  |---|---|---|
+  | 0 Stable | 0 | clean |
+  | 1 Unstable | 1-2 | RGB split on headings and readouts |
+  | 2 Corrupted | 3-5 | + trembling buttons, some KPI values turn into `0x4F_CORRUPT` |
+  | 3 Desync | 6+ | + cards slip, scanlines roll over the screen |
+- **Sound:** a low hum that sinks and pulses as the magic drops, and a chime when something is stabilized or set to FIXED. Off by default; the **Muted / Sound on** button in the top bar controls all sound (`src/dashboard/sound.ts`).
+- **Error modes (commander):** under the demo buttons, *Errors: Calm / Normal / Chaos* sets how much random trouble the simulator makes (none, as before, 4×). Synced live to every dashboard. **Clear all errors** (testing) stops all running trouble and acknowledges every open alert, criticals included.
+- **Keyboard shortcuts:** press <kbd>?</kbd> for the list. <kbd>N</kbd> new echo, <kbd>G</kbd> <kbd>O</kbd>/<kbd>A</kbd>/<kbd>G</kbd> go to overview/anomalies/guardians, <kbd>J</kbd>/<kbd>K</kbd> next/previous glitch (in the list and on a glitch page), <kbd>U</kbd> back, <kbd>S</kbd> jump to the stabilizer. Shortcuts are ignored while typing (`src/components/KeyboardShortcuts.tsx`).
 
 ### Code map
 

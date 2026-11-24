@@ -1,16 +1,40 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { anomalySeed, isInTune, targetSignal } from '#/lib/stabilize.ts'
 import { denyUnless } from '#/server/grid/http.ts'
-import { acknowledge } from '#/server/grid/queries.ts'
+import { acknowledgeIncident, getAnomaly } from '#/server/grid/queries.ts'
 
-/** POST /api/anomalies/:id/ack - every open dashboard gets an `ack` event. */
+/**
+ * POST /api/anomalies/:id/ack - every open dashboard gets an `ack` event.
+ * Acknowledging clears the whole incident: every open alert of the same node + metric
+ * (a glitch fires an alert every second it lasts).
+ * Critical anomalies can't just be clicked away: the body must carry a signal
+ * `{ frequency, phase }` tuned to this anomaly (the stabilizer mini-game).
+ */
 export const Route = createFileRoute('/api/anomalies/$id/ack')({
   server: {
     handlers: {
-      POST: ({ params }) => {
+      POST: async ({ params, request }) => {
         const denied = denyUnless()
         if (denied) return denied
-        const anomaly = acknowledge(Number(params.id))
-        return anomaly ? Response.json(anomaly) : Response.json({ error: 'not found' }, { status: 404 })
+
+        const id = Number(params.id)
+        const existing = getAnomaly(id)
+        if (!existing) return Response.json({ error: 'not found' }, { status: 404 })
+        if (existing.acknowledgedAt) return Response.json(existing)
+
+        if (existing.severity === 'critical') {
+          const body = (await request.json().catch(() => ({}))) as { frequency?: unknown; phase?: unknown }
+          const signal = { frequency: Number(body.frequency), phase: Number(body.phase) }
+          if (!isInTune(signal, targetSignal(anomalySeed(id)))) {
+            return Response.json(
+              { error: 'Critical anomalies must be stabilized, not just acknowledged' },
+              { status: 409 },
+            )
+          }
+        }
+
+        acknowledgeIncident(existing.nodeId, existing.metric)
+        return Response.json(getAnomaly(id))
       },
     },
   },

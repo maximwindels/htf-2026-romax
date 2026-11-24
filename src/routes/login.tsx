@@ -78,7 +78,7 @@ function LoginPage() {
           />
 
           {error && (
-            <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-300">
+            <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-700 dark:text-red-300">
               {error}
             </p>
           )}

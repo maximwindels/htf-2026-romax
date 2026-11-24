@@ -15,15 +15,19 @@ export const useWarnings = () => useQuery({ queryKey: qk.warnings, queryFn: api.
 export const useSeries = (metric: Metric, nodeId?: string) =>
   useQuery({ queryKey: qk.series(metric, nodeId), queryFn: () => api.series(metric, nodeId), ...live });
 
-export function useAck() {
+/** Writes an acknowledged anomaly into the cache, so every list updates at once. */
+export function useStoreAck() {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: api.ack,
-    onSuccess: (row) => {
-      qc.setQueryData<Anomaly[]>(qk.anomalies, (old) => old?.map((a) => (a.id === row.id ? row : a)));
-      qc.invalidateQueries({ queryKey: qk.stats });
-    },
-  });
+  return (row: Anomaly) => {
+    qc.setQueryData<Anomaly[]>(qk.anomalies, (old) => old?.map((a) => (a.id === row.id ? row : a)));
+    qc.invalidateQueries({ queryKey: qk.stats });
+  };
+}
+
+/** Plain acknowledge, for medium and high anomalies. Critical ones go through the stabilizer. */
+export function useAck() {
+  const store = useStoreAck();
+  return useMutation({ mutationFn: (id: number) => api.ack(id), onSuccess: store });
 }
 
 /** Re-render every `ms` so "time ago" labels and status windows stay fresh. */

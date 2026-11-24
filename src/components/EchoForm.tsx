@@ -59,13 +59,13 @@ export function EchoForm({
       />
 
       {error && (
-        <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-300">
+        <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-700 dark:text-red-300">
           {error}
         </p>
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <span className={`text-xs ${remaining < 50 ? 'text-red-400' : 'text-muted'}`}>
+        <span className={`text-xs ${remaining < 50 ? 'text-red-600 dark:text-red-400' : 'text-muted'}`}>
           {remaining} characters left · Ctrl+Enter to send
         </span>
         <button

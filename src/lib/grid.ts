@@ -11,6 +11,15 @@ export const METRIC_INFO: Record<Metric, { label: string; unit: string; decimals
   drift: { label: 'Sync drift', unit: 'ms', decimals: 1 },
 };
 
+/** How much random trouble the simulator makes by itself. Demo buttons work in every mode. */
+export const TROUBLE_MODES = ['calm', 'normal', 'chaos'] as const;
+export type TroubleMode = (typeof TROUBLE_MODES)[number];
+export const TROUBLE_MODE_INFO: Record<TroubleMode, { label: string; hint: string }> = {
+  calm: { label: 'Calm', hint: 'No random trouble: only what you trigger yourself' },
+  normal: { label: 'Normal', hint: 'A random glitch every minute or two, now and then a Desync wave' },
+  chaos: { label: 'Chaos', hint: 'Four times as much random trouble: The Desync is winning' },
+};
+
 export const SEVERITIES = ['medium', 'high', 'critical'] as const;
 export type Severity = (typeof SEVERITIES)[number];
 export const SEVERITY_RANK: Record<Severity, number> = { medium: 1, high: 2, critical: 3 };

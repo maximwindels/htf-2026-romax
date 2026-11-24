@@ -1,13 +1,18 @@
+import { Keyboard, Moon, Sun, Volume2, VolumeX } from 'lucide-react'
+import { DESYNC_LEVELS, type DesyncState } from './desync'
 import { PixelCrystal } from '#/components/grid/PixelCrystal'
+import { openShortcutsHelp } from '#/lib/shortcuts.ts'
+import { toggleTheme, useTheme } from '#/lib/theme.ts'
 import { toggleSound, useSoundOn } from './alerts'
 import { fmtTime } from './format'
 import { useNow } from './hooks'
 import type { LiveStatus } from './live'
 
-/** Top bar above every page: brand, sound toggle, live-connection status and the clock. */
-export function TopBar({ liveStatus }: { liveStatus: LiveStatus }) {
+/** Top bar above every page: brand, magic meter, theme/sound toggles, live-connection status and the clock. */
+export function TopBar({ liveStatus, desync }: { liveStatus: LiveStatus; desync: DesyncState }) {
   const now = useNow(1000)
   const soundOn = useSoundOn()
+  const theme = useTheme()
 
   return (
     <header className="topbar grid-ui">
@@ -18,8 +23,43 @@ export function TopBar({ liveStatus }: { liveStatus: LiveStatus }) {
       </div>
 
       <div className="topbar-right">
-        <button className="btn-small ghost" onClick={toggleSound} title="Sound on critical alerts">
-          {soundOn ? '🔊' : '🔇'}
+        <div
+          className={`magic-meter level-${desync.level}`}
+          title={`${desync.errors} open error${desync.errors === 1 ? '' : 's'} (critical counts double). Levels: 0 Stable · 1 Unstable (1+) · 2 Corrupted (3+) · 3 Desync (6+)`}
+        >
+          <span className="magic-label">Magic</span>
+          <span className="magic-bar" aria-hidden>
+            <span style={{ width: `${desync.magic}%` }} />
+          </span>
+          <span className={`desync-level level-${desync.level}`}>
+            LVL {desync.level} · {DESYNC_LEVELS[desync.level].name}
+          </span>
+        </div>
+        <button
+          className="btn-small ghost inline-flex items-center"
+          onClick={openShortcutsHelp}
+          title="Keyboard shortcuts (?)"
+          aria-label="Keyboard shortcuts"
+        >
+          <Keyboard className="size-4" />
+        </button>
+        <button
+          className="btn-small ghost inline-flex items-center"
+          onClick={toggleTheme}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode (T)`}
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        </button>
+        {/* Mute switch for everything: alert beeps, the Desync hum and the stabilize chime. Off by default. */}
+        <button
+          className={`btn-small sound-toggle inline-flex items-center gap-1.5 whitespace-nowrap ${soundOn ? 'is-on' : 'ghost'}`}
+          onClick={toggleSound}
+          title={soundOn ? 'Mute all sound' : 'Turn sound on (alerts, Desync hum, chimes)'}
+          aria-pressed={soundOn}
+        >
+          {soundOn ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+          {soundOn ? 'Sound on' : 'Muted'}
         </button>
         <span className={`live live-${liveStatus}`}>
           <span className="live-dot" /> {liveStatus}

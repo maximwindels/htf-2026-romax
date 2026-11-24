@@ -37,10 +37,11 @@ export function GlitchesTable({ glitches }: { glitches: GlitchListItem[] }) {
               return (
                 <tr
                   key={glitch.glitchId}
+                  data-glitch-row
                   tabIndex={0}
                   onClick={open}
                   onKeyDown={(e) => e.key === 'Enter' && open()}
-                  className="cursor-pointer transition-colors hover:bg-subtle focus:bg-subtle focus:outline-none"
+                  className="cursor-pointer transition-colors hover:bg-subtle focus:bg-subtle focus:outline-none focus-visible:shadow-[inset_4px_0_0_var(--accent)]"
                 >
                   <td className="px-5 py-4 whitespace-nowrap">{glitch.glitchId}</td>
                   <td className="px-5 py-4">

@@ -1,10 +1,10 @@
 import { STATUS_LABELS, type GlitchStatus } from '#/lib/glitch.ts'
 
 const styles: Record<GlitchStatus, { badge: string; dot: string }> = {
-  LEAKED: { badge: 'bg-red-500/15 text-red-300', dot: 'bg-red-500 animate-pulse' },
-  ASSESSING: { badge: 'bg-amber-500/15 text-amber-300', dot: 'bg-amber-500' },
-  CONTAINING: { badge: 'bg-sky-500/15 text-sky-300', dot: 'bg-sky-500' },
-  FIXED: { badge: 'bg-emerald-500/15 text-emerald-300', dot: 'bg-emerald-500' },
+  LEAKED: { badge: 'bg-red-500/15 text-red-700 dark:text-red-300', dot: 'bg-red-500 animate-pulse' },
+  ASSESSING: { badge: 'bg-amber-500/15 text-amber-800 dark:text-amber-300', dot: 'bg-amber-500' },
+  CONTAINING: { badge: 'bg-sky-500/15 text-sky-800 dark:text-sky-300', dot: 'bg-sky-500' },
+  FIXED: { badge: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300', dot: 'bg-emerald-500' },
 }
 
 export function StatusBadge({ status }: { status: GlitchStatus }) {

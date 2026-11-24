@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Link, createFileRoute, notFound, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, LoaderCircle, ShieldCheck, Trash2 } from 'lucide-react'
 import { EchoForm } from '#/components/EchoForm.tsx'
+import { Stabilizer } from '#/components/Stabilizer.tsx'
 import { StatusBadge } from '#/components/StatusBadge.tsx'
+import { playStabilized } from '#/dashboard/sound.ts'
 import { formatTimestamp } from '#/lib/format.ts'
-import { deleteGlitch, getGlitch, setGlitchStatus } from '#/lib/glitches.functions.ts'
+import { deleteGlitch, getGlitch, setGlitchStatus, stabilizeGlitch } from '#/lib/glitches.functions.ts'
 import { GLITCH_STATUSES, STATUS_LABELS, type GlitchDetail, type GlitchStatus } from '#/lib/glitch.ts'
 import { isCommander } from '#/lib/guardian.ts'
 
@@ -54,6 +56,21 @@ function GlitchPage() {
           </time>
         </p>
       </div>
+
+      {glitch.status === 'CONTAINING' && (
+        <Stabilizer
+          seed={glitch.glitchId}
+          onStabilize={(signal) => stabilizeGlitch({ data: { glitchId: glitch.glitchId, ...signal } })}
+          onDone={() => router.invalidate()}
+          doneLabel="Signal stabilized · glitch fixed"
+          hint={
+            <>
+              Tune your signal onto the ghost wave and hold it steady for 2 seconds. Press{' '}
+              <kbd className="kbd">S</kbd> to grab the controls.
+            </>
+          }
+        />
+      )}
 
       {isCommander(guardian) && <CommanderPanel glitch={glitch} />}
 
@@ -115,6 +132,7 @@ function CommanderPanel({ glitch }: { glitch: GlitchDetail }) {
   const changeStatus = (status: GlitchStatus) =>
     run('status', async () => {
       await setGlitchStatus({ data: { glitchId: glitch.glitchId, status } })
+      if (status === 'FIXED') playStabilized()
       await router.invalidate()
     })
 
@@ -160,7 +178,7 @@ function CommanderPanel({ glitch }: { glitch: GlitchDetail }) {
           type="button"
           onClick={remove}
           disabled={busy !== null}
-          className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-red-400 transition-colors hover:bg-red-500/15 disabled:opacity-50"
+          className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-red-600 dark:text-red-400 transition-colors hover:bg-red-500/15 disabled:opacity-50"
         >
           <Trash2 className="size-4" />
           Delete glitch
@@ -168,7 +186,7 @@ function CommanderPanel({ glitch }: { glitch: GlitchDetail }) {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-300">
+        <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2 text-sm text-red-700 dark:text-red-300">
           {error}
         </p>
       )}

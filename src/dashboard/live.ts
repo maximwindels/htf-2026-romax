@@ -5,7 +5,16 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { METRICS, type Anomaly, type EarlyWarning, type Latest, type Metric, type SeriesPoint, type Tick } from '#/lib/grid.ts';
+import {
+  METRICS,
+  type Anomaly,
+  type EarlyWarning,
+  type Latest,
+  type Metric,
+  type SeriesPoint,
+  type Tick,
+  type TroubleMode,
+} from '#/lib/grid.ts';
 import { notify, notifyWarning } from './alerts';
 import { SERIES_MINUTES, qk } from './api';
 
@@ -46,6 +55,14 @@ export function useLiveStream(): LiveStatus {
     on<EarlyWarning>('warning-confirmed', (warning) => replace(queryClient, qk.warnings, warning));
     // A glitch was opened automatically: reload the route loaders, so the glitch list shows it.
     on('glitch', () => router.invalidate());
+    // A commander switched calm / normal / chaos: every dashboard shows the new mode.
+    on<TroubleMode>('mode', (mode) => queryClient.setQueryData(qk.simMode, { mode }));
+    // Testing "clear all": too many rows to patch one by one, so refetch the lists.
+    on('cleared', () => {
+      queryClient.invalidateQueries({ queryKey: qk.anomalies });
+      queryClient.invalidateQueries({ queryKey: qk.stats });
+      queryClient.invalidateQueries({ queryKey: qk.forecasts });
+    });
 
     return () => events.close();
   }, [queryClient, router]);

@@ -1,12 +1,14 @@
 import {
   HeadContent,
   Outlet,
+  ScriptOnce,
   Scripts,
   createRootRoute,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
+import { THEME_BOOT_SCRIPT } from '#/lib/theme.ts'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
@@ -25,8 +27,11 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // data-theme: dark by default; the boot script switches it before paint, hence the warning opt-out.
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
+        {/* ScriptOnce: runs during the server-rendered page load only, never re-rendered on the client. */}
+        <ScriptOnce>{THEME_BOOT_SCRIPT}</ScriptOnce>
         <HeadContent />
       </head>
       <body className="bg-app font-sans antialiased">

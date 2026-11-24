@@ -30,7 +30,12 @@ export type Echo = {
   reporter: string
 }
 
-export type GlitchDetail = Glitch & { echoes: Echo[] }
+export type GlitchDetail = Glitch & {
+  echoes: Echo[]
+  /** Neighbours in the overview's order (newest first), for J/K navigation. */
+  newerId: string | null
+  olderId: string | null
+}
 
 export const STATUS_LABELS: Record<GlitchStatus, string> = {
   LEAKED: 'Leaked',

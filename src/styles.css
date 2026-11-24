@@ -5,6 +5,9 @@
 /* Mission control dashboard styles. In the components layer, so Tailwind utilities still win. */
 @import "./grid.css" layer(components);
 
+/* `dark:` follows the theme toggle (<html data-theme>), not the OS setting. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
@@ -52,3 +55,57 @@ body {
   background-color: var(--app);
   color: var(--fg);
 }
+
+/* ---------- Light mode: "Achrona by daylight" ----------
+   Same HTF 2026 identity (blue/orange/pink, hard edges, no glows) on parchment instead of night.
+   Overrides both token sets: the Tailwind tokens above and the dashboard variables in grid.css.
+   Accent colours are darker than in dark mode so text stays readable on the light background. */
+:root[data-theme='light'] {
+  /* Tailwind tokens */
+  --app: #f4eee2;
+  --sidebar: #1e1530; /* the sidebar stays a dark rail, like the starter */
+  --panel: #fffaf1;
+  --card: #fffaf1;
+  --card-strong: #efe4cf;
+  --line: rgba(58, 36, 16, 0.16);
+  --fg: #1e1530;
+  --muted: #6a6280;
+  --subtle: #f1e7d4;
+  --subtle-hover: #e8dcc4;
+  --accent: #a52bd9;
+  --glow: rgb(165 43 217 / 0.15);
+
+  /* grid.css variables */
+  --bg: #f4eee2;
+  --panel-2: #f1e7d4;
+  --text: #1e1530;
+  --orange: #b4561a;
+  --pink: #a52bd9;
+  --purple: #7929c6;
+  --ok: #1f5fd1;
+  --sev-medium: #a52bd9;
+  --sev-high: #c96a12;
+  --sev-critical: #d23a1e;
+  color-scheme: light;
+}
+
+/* Dark text on the orange and red surfaces (in dark mode they use --bg, which is dark there). */
+:root[data-theme='light'] :is(.kpi.tone-high .kpi-label, .kpi.tone-high .kpi-value, .kpi.tone-high .kpi-sub,
+  .kpi.tone-critical .kpi-label, .grid-ui button.danger, .curse-banner) {
+  color: #160f1f;
+}
+/* Blue surfaces (buttons, KPI cards, active nav) stay dark in light mode, so keep their light text
+   and the bright orange labels. */
+:root[data-theme='light'] :is(.grid-ui button:not(.danger):not(.magic):not(.ghost), .grid-ui nav a.active, .grid-ui nav a[data-status='active']) {
+  color: #e1e7ff;
+}
+:root[data-theme='light'] .kpi:not(.tone-high):not(.tone-critical) .kpi-label { color: #e69e41; }
+:root[data-theme='light'] .kpi.tone-critical .kpi-label { color: #160f1f; }
+/* The magic CTA has a light face in both themes. */
+:root[data-theme='light'] .grid-ui button.magic {
+  background: linear-gradient(#fff, #fff) padding-box, var(--grad-magic) border-box;
+}
+/* Extruded blackletter: white face with the blue 3D edge reads well on parchment. */
+:root[data-theme='light'] :is(.grid-ui h1, .extrude) { color: #fff; }
+/* Less grain on a light background. */
+:root[data-theme='light'] body::before { opacity: 0.04; }

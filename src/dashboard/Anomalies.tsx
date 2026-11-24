@@ -13,7 +13,8 @@ import { METRIC_INFO, SEVERITY_RANK, type Anomaly } from '#/lib/grid.ts';
 import { NodeLink } from '#/components/grid/NodeLink';
 import { SeverityBadge } from '#/components/grid/SeverityBadge';
 import { fmt, fmtTime } from './format';
-import { useAck, useAnomalies } from './hooks';
+import { AckButton } from '#/components/grid/AckButton';
+import { useAnomalies } from './hooks';
 
 const column = createColumnHelper<Anomaly>();
 const Mono = ({ children }: { children: string }) => <span className="mono">{children}</span>;
@@ -21,7 +22,6 @@ const Mono = ({ children }: { children: string }) => <span className="mono">{chi
 /** Anomaly log: a TanStack Table with sorting, search, a severity filter, an open-only toggle and pages. */
 export function AnomaliesPage() {
   const { data = [], isLoading } = useAnomalies();
-  const ack = useAck();
   const [sorting, setSorting] = useState<SortingState>([{ id: 'ts', desc: true }]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [severity, setSeverity] = useState<string>('all');
@@ -55,15 +55,11 @@ export function AnomaliesPage() {
         cell: (c) => {
           const anomaly = c.row.original;
           if (anomaly.acknowledgedAt) return <span className="muted small">ack {fmtTime(anomaly.acknowledgedAt)}</span>;
-          return (
-            <button className="btn-small" onClick={() => ack.mutate(anomaly.id)}>
-              Ack
-            </button>
-          );
+          return <AckButton anomaly={anomaly} label="Ack" />;
         },
       }),
     ],
-    [ack],
+    [],
   );
 
   const table = useReactTable({

@@ -1,8 +1,12 @@
-import type { Anomaly, EarlyWarning, Forecast, GridNode, Latest, Metric, SeriesPoint, Stats } from '#/lib/grid.ts';
+import type { Anomaly, EarlyWarning, Forecast, GridNode, Latest, Metric, SeriesPoint, Stats, TroubleMode } from '#/lib/grid.ts';
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} - ${url}`);
+  if (!res.ok) {
+    // Prefer the server's own message ({ error }) so the UI can show it.
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `${res.status} ${res.statusText} - ${url}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -24,10 +28,16 @@ export const api = {
     ),
   anomalies: () => request<Anomaly[]>('/api/anomalies?limit=500'),
   stats: () => request<Stats>('/api/stats'),
-  ack: (id: number) => post<Anomaly>(`/api/anomalies/${id}/ack`),
+  /** Critical anomalies need the tuned signal from the stabilizer; the server checks it. */
+  ack: (id: number, signal?: { frequency: number; phase: number }) =>
+    post<Anomaly>(`/api/anomalies/${id}/ack`, signal),
   glitch: (body: { nodeId?: string; metric?: Metric } = {}) => post('/api/sim/glitch', body),
   desync: () => post('/api/sim/desync'),
   ramp: (body: { nodeId?: string; metric?: Metric } = {}) => post('/api/sim/ramp', body),
+  simMode: () => request<{ mode: TroubleMode }>('/api/sim/mode'),
+  setSimMode: (mode: TroubleMode) => post<{ mode: TroubleMode }>('/api/sim/mode', { mode }),
+  /** Testing: stop all trouble and acknowledge every open anomaly. */
+  clearAll: () => post<{ acknowledged: number }>('/api/sim/clear'),
   forecasts: () => request<Forecast[]>('/api/forecasts'),
   warnings: () => request<EarlyWarning[]>('/api/warnings?limit=100'),
 };
@@ -41,4 +51,5 @@ export const qk = {
   stats: ['stats'] as const,
   forecasts: ['forecasts'] as const,
   warnings: ['warnings'] as const,
+  simMode: ['sim-mode'] as const,
 };

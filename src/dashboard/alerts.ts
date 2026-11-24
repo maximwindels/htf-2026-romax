@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { METRIC_INFO, type Anomaly, type EarlyWarning, type Severity } from '#/lib/grid.ts';
+import { audioContext } from './sound';
 
 // Tiny external store for toasts + sound, so the SSE handler can notify without React context.
 
@@ -20,10 +21,10 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-let audio: AudioContext | null = null;
 function beep(freq: number) {
   try {
-    audio ??= new AudioContext();
+    const audio = audioContext(); // shared with the ambient hum (sound.ts)
+    if (!audio) return;
     const osc = audio.createOscillator();
     const gain = audio.createGain();
     osc.type = 'square';
@@ -74,6 +75,8 @@ export function dismiss(key: string) {
     emit();
   }
 }
+
+export const isSoundOn = () => soundOn;
 
 export function toggleSound() {
   soundOn = !soundOn;
